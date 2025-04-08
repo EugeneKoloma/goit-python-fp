@@ -5,7 +5,7 @@ from typing import Dict
 
 from colorama import Fore
 
-from .Fields import Birthday
+from .ContactFields import Birthday
 from .Records import Record
 
 

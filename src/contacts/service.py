@@ -4,7 +4,8 @@ from decorators import error_handler
 from exceptions import FieldNotFound, PhoneAlreadyOwned, RecordNotFound
 from output import output_info, output_warning
 
-from . import ContactsBook, Record
+from .ContactsBook import ContactsBook
+from .Records import Record
 
 
 class PhoneBookService:
