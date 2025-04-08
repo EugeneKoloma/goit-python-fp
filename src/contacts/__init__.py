@@ -1,7 +1,7 @@
+from .ContactFields import Birthday, Name, Phone
 from .ContactsBook import ContactsBook
 from .context import book_cxt_mngr
 from .controller import bootstrap
-from .Fields import Birthday, Name, Phone
 from .Records import Record
 from .service import PhoneBookService
 

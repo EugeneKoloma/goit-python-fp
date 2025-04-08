@@ -1,6 +1,6 @@
 from colorama import Fore
 
-from .Fields import Birthday, Name, Phone
+from .ContactFields import Birthday, Name, Phone
 
 
 class Record:
