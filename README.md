@@ -123,7 +123,11 @@ Once `uv` is installed, follow these steps:
 3. Install the project dependencies:
 
    ```bash
-   uv pip sync
+   uv sync
+   ```
+
+   ```bash
+   uv add <pkg_name>
    ```
 
 ---
@@ -194,7 +198,7 @@ These hooks will run automatically when you try to commit changes to your Git re
 
 - **Run Ruff Linter**: Manually run `ruff` to lint files.
   ```bash
-  ruff src/main.py
+  ruff check .
   ```
 
 ---
@@ -210,7 +214,12 @@ goit-python-fp/
 ├── pyproject.toml
 ├── README.md
 ├── src/
-│   └── main.py
+│   ├── main.py
+│   ├── contacts/
+│   ├── decorators/
+│   ├── exceptions/
+│   ├── notes/
+│   └── output/
 ```
 
 ---
@@ -222,7 +231,7 @@ goit-python-fp/
 Make sure your files are **staged** before committing. The pre-commit hooks only run on files that are staged:
 
 ```bash
-git add src/main.py
+git add .
 git commit -m "Your commit message"
 ```
 
