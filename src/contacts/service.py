@@ -7,6 +7,8 @@ from output import output_info, output_warning
 from .ContactsBook import ContactsBook
 from .Records import Record
 
+from utils.search import elastic_search
+
 
 class PhoneBookService:
     def __init__(self, book: ContactsBook):
@@ -143,3 +145,8 @@ class PhoneBookService:
     @error_handler
     def show_all_contacts(self):
         print(self.book)
+
+    # Call for elactic search for contacts
+    @error_handler
+    def search_contacts(book, query: str):
+        return elastic_search(book.data.values(), query)
