@@ -8,10 +8,8 @@ from colorama import Fore
 from .ContactFields import Birthday
 from .Records import Record
 
-from common.tag import Tag
-from exceptions.RecordNotFound import RecordNotFound
-from exceptions.TagNotFound import TagNotFound
-
+from common import Tag
+from exceptions import RecordNotFound, TagNotFound
 
 class ContactsBook(UserDict):
     def __init__(self):
