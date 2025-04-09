@@ -7,7 +7,9 @@ Command Use Example for tags in contacts:
 """
 
 from colorama import Fore
+
 from common.tag import Tag
+
 from .ContactFields import Birthday, Name, Phone
 
 
@@ -16,6 +18,7 @@ class Record:
         self.name = Name(name)
         self.phones: list[Phone] = []
         self.birthday: Birthday | None = None
+        self.tags = []
 
     def add_birthday(self, date):
         self.birthday = Birthday(date)
@@ -34,7 +37,7 @@ class Record:
     def find_phone(self, phone: str) -> Phone | None:
         found_phone = next((item for item in self.phones if item.value == phone), None)
         return found_phone
-    
+
     # Add tag to contact record
     def add_tag(self, tag: Tag):
         if tag not in self.tags:
@@ -55,7 +58,7 @@ class Record:
             *[str(phone) for phone in self.phones],
             # *[str(email) for email in self.emails], # Uncomment as soon as we have e-mail field
             str(self.birthday) if self.birthday else "",
-            *[str(tag) for tag in self.tags]
+            *[str(tag) for tag in self.tags],
         ]
 
     def __str__(self):
