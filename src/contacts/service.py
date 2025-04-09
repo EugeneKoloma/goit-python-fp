@@ -120,9 +120,9 @@ class PhoneBookService:
         )
 
     @error_handler
-    def show_next_week_birthdays(self, args: list):
+    def show_next_n_days_birthdays(self, args: list):
         '''
-        Команда формавання таблиці із списком іменинників на найближчі days_to дні
+        Команда формування таблиці із списком іменинників на найближчі days_to дні
         '''
         try:
             days_to = args[0].strip(" ").strip(",")
@@ -130,7 +130,7 @@ class PhoneBookService:
         except IndexError:
             days_to = 7
         # Отримаємо список найближчих іменинників з AddressBook та редагуємо для табличного виводу
-        congrats_list = self.book.find_next_week_bithdays(days_to)
+        congrats_list = self.book.find_next_n_days_bithdays(days_to)
         if congrats_list:       
             congrats_list_str = f"Список іменинників на наступні {days_to} днів:".center(56) + f"\n{'-' * 56}\n\
 |{'Names':^15}|{'Congratulation date':^25}|{"Days left":^12}|\n{'-' * 56}\n"   

@@ -30,10 +30,10 @@ class ContactsBook(UserDict):
     def delete(self, name):
         self.data.pop(name)
 
-    def find_next_week_bithdays(self, days_to):
+    def find_next_n_days_bithdays(self, days_to: int = 7) -> list[dict]:
         '''
-        Функція повернутає список всіх, у кого день народження вперед на 7 днів включаючи поточний день, 
-        з перенесенням вихідних.
+        Функція повернутає список всіх, у кого день народження вперед на days_to днів включаючи поточний день
+        (за замовченням - 7 днів).
         '''
         date_format_pattern = Birthday.date_format_pattern
         today = dtdt.today().date()
@@ -50,22 +50,17 @@ class ContactsBook(UserDict):
                 user_birthday_this_year = user_birthday.replace(year = today.year + 1)
             # Визначаємо різницю між днем народження та поточним днем
             days_to_user_birthday_this_year = user_birthday_this_year.toordinal() - today.toordinal()
-            # Перевіряємо, чи день народження припадає на вихідний
-            if user_birthday_this_year.weekday() > 4:
-                days_to_user_congrats = days_to_user_birthday_this_year + (7 - user_birthday_this_year.weekday())
-            else:
-                days_to_user_congrats = days_to_user_birthday_this_year
             # Відбираємо тих, чий день народження відбувається протягом наступного тижня
             if days_to_user_birthday_this_year < days_to:
-                user_congrats_day = today + td(days = days_to_user_congrats)
+                user_congrats_day = today + td(days = days_to_user_birthday_this_year)
                 user_congrats_day = user_congrats_day.strftime("%d %B %Y, %A")
-                if days_to_user_congrats == 0:
-                    days_to_user_congrats = f"{Fore.LIGHTRED_EX}{'Today!':^12}{Fore.LIGHTBLUE_EX}"
-                elif days_to_user_congrats == 1:
-                    days_to_user_congrats = f"{Fore.LIGHTRED_EX}{'Tomorrow!':^12}{Fore.LIGHTBLUE_EX}"
+                if days_to_user_birthday_this_year == 0:
+                    days_to_user_birthday_this_year = f"{Fore.LIGHTRED_EX}{'Today!':^12}{Fore.LIGHTBLUE_EX}"
+                elif days_to_user_birthday_this_year == 1:
+                    days_to_user_birthday_this_year = f"{Fore.LIGHTRED_EX}{'Tomorrow!':^12}{Fore.LIGHTBLUE_EX}"
                 congrats_list.append({"name": name, 
                                  "congratulation_date": user_congrats_day,
-                                 "days_to_user_congrats": days_to_user_congrats,})                
+                                 "days_to_user_congrats": days_to_user_birthday_this_year,})                
         return congrats_list
 
     def __str__(self):
