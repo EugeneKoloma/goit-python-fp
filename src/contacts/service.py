@@ -9,7 +9,7 @@ from .Records import Record
 
 
 class PhoneBookService:
-    def __init__(self, book):
+    def __init__(self, book: ContactsBook):
         self.__book: ContactsBook = book
 
     @property
@@ -62,8 +62,8 @@ class PhoneBookService:
         phone = record.find_phone(old_phone)
         if phone is None:
             raise FieldNotFound(
-                f"Phone number {Fore.GREEN}{new_phone}{Fore.RESET} not exist. "
-                / f"U can add it by using [{Fore.CYAN}add{Fore.RESET}] command, type help for more info."
+                f"Phone number {Fore.GREEN}{new_phone}{Fore.RESET} not exist. "\
+                f"U can add it by using [{Fore.CYAN}add{Fore.RESET}] command, type help for more info."
             )
 
         if self.book.is_phone_owned(new_phone):
@@ -85,7 +85,7 @@ class PhoneBookService:
                 f"Record not found with name: {Fore.GREEN}{name}{Fore.RESET}"
             )
 
-        print(self.book())
+        print(self.book)
 
     @error_handler
     def set_birthday(self, args):
@@ -120,8 +120,25 @@ class PhoneBookService:
         )
 
     @error_handler
-    def show_next_week_birthdays(self):
-        print(self.book.find_next_week_bithdays())
+    def show_next_week_birthdays(self, args: list):
+        '''
+        Команда формавання таблиці із списком іменинників на найближчі days_to дні
+        '''
+        try:
+            days_to = args[0].strip(" ").strip(",")
+            days_to = int(days_to)
+        except IndexError:
+            days_to = 7
+        # Отримаємо список найближчих іменинників з AddressBook та редагуємо для табличного виводу
+        congrats_list = self.book.find_next_week_bithdays(days_to)
+        if congrats_list:       
+            congrats_list_str = f"Список іменинників на наступні {days_to} днів:".center(56) + f"\n{'-' * 56}\n\
+|{'Names':^15}|{'Congratulation date':^25}|{"Days left":^12}|\n{'-' * 56}\n"   
+            for item in congrats_list:
+                congrats_list_str += f"|{item["name"]:<15}|{item["congratulation_date"]:^25}|{item["days_to_user_congrats"]:^12}|\n"
+            congrats_list_str += f"{'-' * 56}"
+            return congrats_list_str
+        return f"В найближчі {days_to} днів немає іменинників!"
 
     @error_handler
     def show_all_contacts(self):
