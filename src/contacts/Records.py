@@ -1,5 +1,13 @@
-from colorama import Fore
+"""
+Command Use Example for tags in contacts:
 
+> add-tag "John Doe" #friend -> call add_tag(tag) method
+> show-tags "John Doe" -> call remove_tag(tag) method
+
+"""
+
+from colorama import Fore
+from common.tag import Tag
 from .ContactFields import Birthday, Name, Phone
 
 
@@ -26,6 +34,19 @@ class Record:
     def find_phone(self, phone: str) -> Phone | None:
         found_phone = next((item for item in self.phones if item.value == phone), None)
         return found_phone
+    
+    # Add tag to contact record
+    def add_tag(self, tag: Tag):
+        if tag not in self.tags:
+            self.tags.append(tag)
+
+    # Remove tag from contact record
+    def remove_tag(self, tag: Tag):
+        self.tags = [t for t in self.tags if t != tag]
+
+    # Show tags from contact record
+    def list_tags(self):
+        return [str(tag) for tag in self.tags]
 
     def __str__(self):
         birthday = (
