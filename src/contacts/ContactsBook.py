@@ -8,6 +8,8 @@ from colorama import Fore
 from .ContactFields import Birthday
 from .Records import Record
 
+from common import Tag
+from exceptions import RecordNotFound, TagNotFound
 
 class ContactsBook(UserDict):
     def __init__(self):
@@ -62,6 +64,28 @@ class ContactsBook(UserDict):
                                  "congratulation_date": user_congrats_day,
                                  "days_to_user_congrats": days_to_user_birthday_this_year,})                
         return congrats_list
+
+    # Add tag to contact with exception RecordNotFound raised if no such contact
+    def add_tag_to_contact(self, name: str, tag: Tag):
+        record = self.get(name)
+        if record:
+            record.add_tag(tag)
+        else: 
+            raise RecordNotFound(f"Contact with name '{name}' not found.")
+
+    # Shoe tags from contacts
+    def list_tags_for_contact(self, name: str):
+        record = self.get(name)
+        return record.list_tags() if record else []
+
+    # Delete tag from contact with exception TagNotFound raised if no such tag
+    def remove_tag_from_contact(self, name: str, tag: Tag):
+        record = self.get(name)
+        if not record:
+            raise RecordNotFound(f"Contact with name '{name}' not found.")
+        if tag not in record.tags:
+            raise TagNotFound(tag.value())
+        record.remove_tag(tag)
 
     def __str__(self):
         if not self.data:
