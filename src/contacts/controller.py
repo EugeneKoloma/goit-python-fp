@@ -36,6 +36,9 @@ def bootstrap():
                     book_service.get_birthday(args)
                 case "birthdays":
                     book_service.show_next_week_birthdays()
+                case "add-email":
+                    book_service.add_email(args)
+
                 case "help":
                     print(
                         "Available commands:\n"

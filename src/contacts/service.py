@@ -30,7 +30,7 @@ class PhoneBookService:
                     f"This number {Fore.YELLOW}{phone}{Fore.RESET} already owned."
                 )
 
-            new_record = Record(name)
+            new_record = Record(name)  # type: ignore
             new_record.add_phone(phone)
             self.book.add_record(new_record)
             output_info(
@@ -63,7 +63,7 @@ class PhoneBookService:
         if phone is None:
             raise FieldNotFound(
                 f"Phone number {Fore.GREEN}{new_phone}{Fore.RESET} not exist. "
-                / f"U can add it by using [{Fore.CYAN}add{Fore.RESET}] command, type help for more info."
+                / f"U can add it by using [{Fore.CYAN}add{Fore.RESET}] command, type help for more info."  # type: ignore
             )
 
         if self.book.is_phone_owned(new_phone):
@@ -85,7 +85,7 @@ class PhoneBookService:
                 f"Record not found with name: {Fore.GREEN}{name}{Fore.RESET}"
             )
 
-        print(self.book())
+        print(self.book())  # type: ignore
 
     @error_handler
     def set_birthday(self, args):
@@ -126,3 +126,65 @@ class PhoneBookService:
     @error_handler
     def show_all_contacts(self):
         print(self.book)
+
+    # ====================================MAIL=====================================
+    @error_handler
+    def add_email(self, args: list[str]):
+        name, email = args
+        record = self.book.find(name)
+        if record is None:
+            new_record = Record(name)  # type: ignore
+            new_record.add_email(email)
+            self.book.add_record(new_record)
+            output_info(
+                f"Contact {Fore.GREEN}{name.capitalize()}{Fore.RESET} with email {Fore.GREEN}{email}{Fore.RESET} has been added."
+            )
+        else:
+            if record.find_email(email) is None:
+                record.add_email(email)
+                output_info(
+                    f"New email {Fore.GREEN}{email}{Fore.RESET} was added to {Fore.GREEN}{name.capitalize()}{Fore.RESET}."
+                )
+            else:
+                output_warning(
+                    f"Contact {Fore.GREEN}{name.capitalize()}{Fore.RESET} already has this email {Fore.GREEN}{email}{Fore.RESET}."
+                )
+
+    @error_handler
+    def edit_email(self, args: list[str]):
+        name, old_email, new_email = args
+        record = self.book.find(name)
+        if record is None:
+            raise RecordNotFound(
+                f"Record not found for name: {Fore.GREEN}{name}{Fore.RESET}"
+            )
+
+        email_obj = record.find_email(old_email)
+        if email_obj is None:
+            raise FieldNotFound(
+                f"Email {Fore.GREEN}{old_email}{Fore.RESET} not found. "
+                f"Use add_email command to add it."
+            )
+
+        email_obj.value = new_email
+        output_info(
+            f"Contact {Fore.GREEN}{name.capitalize()}{Fore.RESET} has been updated with new email {Fore.GREEN}{new_email}{Fore.RESET}."
+        )
+
+    @error_handler
+    def remove_email(self, args: list[str]):
+        name, email = args
+        record = self.book.find(name)
+        if record is None:
+            raise RecordNotFound(
+                f"Record not found for name: {Fore.GREEN}{name}{Fore.RESET}"
+            )
+
+        email_obj = record.find_email(email)
+        if email_obj is None:
+            raise FieldNotFound(f"Email {Fore.GREEN}{email}{Fore.RESET} not found.")
+
+        record.remove_email(email)
+        output_info(
+            f"Email {Fore.GREEN}{email}{Fore.RESET} removed from contact {Fore.GREEN}{name.capitalize()}{Fore.RESET}."
+        )
