@@ -73,7 +73,10 @@ class Note(UserDict):
         '''
         Add a new tag to the Tag-object
         '''
-        self.data["Tags"].append(tag)
+        if tag not in self.data["Tags"]:
+            self.data["Tags"].append(tag)
+        else:
+            print(f"{Fore.LIGHTYELLOW_EX}INFO:{Fore.RESET} The note with title '{Fore.LIGHTYELLOW_EX}{self.data["Title"]}{Fore.RESET}' already has such tag!")
 
     def edit_tag(self, old_tag: str, new_tag: str):
         '''
