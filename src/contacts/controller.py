@@ -38,6 +38,10 @@ def bootstrap():
                     book_service.show_next_week_birthdays()
                 case "add-email":
                     book_service.add_email(args)
+                case "change-email":
+                    book_service.edit_email(args)
+                case "remove-email":
+                    book_service.remove_email(args)
 
                 case "help":
                     print(
