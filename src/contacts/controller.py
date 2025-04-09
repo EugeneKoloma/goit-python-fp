@@ -1,4 +1,4 @@
-from colorama import Fore
+from colorama import Fore, init
 
 from output import output_info, output_warning
 
@@ -7,6 +7,7 @@ from .service import PhoneBookService
 
 
 def bootstrap():
+    init()
     print(f"{Fore.BLUE}**** Welcome to the assistant bot! ****{Fore.RESET}")
     with book_cxt_mngr() as book:
         book_service = PhoneBookService(book)
@@ -35,7 +36,7 @@ def bootstrap():
                 case "show-birthday":
                     book_service.get_birthday(args)
                 case "birthdays":
-                    book_service.show_next_week_birthdays()
+                    print(f"{Fore.LIGHTBLUE_EX}{book_service.show_next_n_days_birthdays(args)}{Fore.RESET}")
                 case "help":
                     print(
                         "Available commands:\n"
