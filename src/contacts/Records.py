@@ -27,6 +27,16 @@ class Record:
         found_phone = next((item for item in self.phones if item.value == phone), None)
         return found_phone
 
+    # Return a list of string-convertible fields for elastic search to function properly
+    def get_all_fields(self):
+        return [
+            str(self.name),
+            *[str(phone) for phone in self.phones],
+            # *[str(email) for email in self.emails], # Uncomment as soon as we have e-mail field
+            str(self.birthday) if self.birthday else "",
+            *[str(tag) for tag in self.tags]
+        ]
+
     def __str__(self):
         birthday = (
             f"Birthday: {Fore.MAGENTA}{self.birthday}{Fore.RESET}"
