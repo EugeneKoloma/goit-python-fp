@@ -36,7 +36,7 @@ def bootstrap():
                 case "show-birthday":
                     book_service.get_birthday(args)
                 case "birthdays":
-                    print(f"{Fore.LIGHTBLUE_EX}{book_service.show_next_n_days_birthdays(args)}{Fore.RESET}")
+                    book_service.show_next_n_days_birthdays(args)
                 case "help":
                     print(
                         "Available commands:\n"
