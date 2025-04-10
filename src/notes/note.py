@@ -1,29 +1,19 @@
 from datetime import datetime as dtdt
 
 from colorama import Fore
-from NotesFields import Context, Title
+from NotesFields import Context, Date, Title
 
 from common import Tag
 
 
 class Note:
-    __date_format = "%Y-%m-%d %H:%M:%S"
-
     def __init__(self, title: str = "Without title", note: str = ""):
         self.title: Title = Title(title)
         self.context: Context = Context(note)
         self.tags: list[Tag] = []
         now = dtdt.now()
-        self.created_at: dtdt = now
-        self.updated_at: dtdt = now
-
-    @property
-    def updated_at(self):
-        return self.updated_at.strftime(Note.__date_format)
-
-    @property
-    def created_at(self):
-        return self.created_at.strftime(Note.__date_format)
+        self.created_at: Date = now
+        self.updated_at: Date = now
 
     def change_title(self, new_title: str):
         self.title._value = new_title

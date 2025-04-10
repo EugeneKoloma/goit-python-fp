@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from common import Field
 
 
@@ -39,3 +41,21 @@ class Context(Field):
             raise ValueError(
                 f"Context length must less then {self._max_length} characters."
             )
+
+
+class Date:
+    _date_format = "%Y-%m-%d %H:%M:%S"
+
+    def __init__(self, date: datetime):
+        self.__date = date
+
+    @property
+    def date(self):
+        return self.__date
+
+    @date.setter
+    def date(self, value: datetime):
+        self.__date = value
+
+    def __str__(self):
+        return self._date.strftime(Date._date_format)
