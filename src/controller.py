@@ -1,7 +1,7 @@
 from colorama import Fore, init
 
-from common import data_cxt_mngr
 from contacts import cntcts_controller
+from context import data_cxt_mngr
 from output import output_warning
 
 
