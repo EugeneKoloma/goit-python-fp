@@ -1,7 +1,12 @@
 from colorama import Fore
 
 from decorators import error_handler
-from exceptions import FieldNotFound, PhoneAlreadyOwned, RecordNotFound
+from exceptions import (
+    FieldNotFound,
+    InvalidDaysInput,
+    PhoneAlreadyOwned,
+    RecordNotFound,
+)
 from output import (
     display_birthdays_table,
     display_contacts_table,
@@ -129,9 +134,12 @@ class PhoneBookService:
         Команда формування таблиці із списком іменинників на найближчі days_to дні
         """
         try:
-            days_to = int(args[0].strip(" ,")) if args else 7
+            days_to = (
+                int(args[0].strip(" ,")) if args else 7
+            )  # <- Set input number of days instead of 7 here later
         except ValueError:
-            days_to = 7
+            raise InvalidDaysInput(f"Wrong days input: {args[0]}")
+
         # Отримаємо список найближчих іменинників з AddressBook та редагуємо для табличного виводу
         congrats_list = self.book.find_next_n_days_bithdays(days_to)
         if congrats_list:

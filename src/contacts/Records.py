@@ -18,7 +18,7 @@ class Record:
         self.name = Name(name)
         self.phones: list[Phone] = []
         self.birthday: Birthday | None = None
-        self.tags = []
+        self.tags: list[Tag] = []
 
     def add_birthday(self, date):
         self.birthday = Birthday(date)
