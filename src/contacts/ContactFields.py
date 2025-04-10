@@ -50,3 +50,25 @@ class Birthday(Field):
         if not Birthday.validate_date(date):
             raise WrongDateFormat(f"Wrong date format {date}")
         self._value = date
+
+
+class Address(Field):
+    def __init__(self, address: str):
+        self.value = address
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, address: str):
+        if not address or not isinstance(address, str):
+            self._value = None
+            return
+
+        self._value = address
+
+    def __eq__(self, other):
+        if isinstance(other, Address):
+            return self.value == other.value
+        return False

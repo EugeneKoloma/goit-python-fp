@@ -10,7 +10,7 @@ from colorama import Fore
 
 from common.tag import Tag
 
-from .ContactFields import Birthday, Name, Phone
+from .ContactFields import Address, Birthday, Name, Phone
 
 
 class Record:
@@ -19,12 +19,22 @@ class Record:
         self.phones: list[Phone] = []
         self.birthday: Birthday | None = None
         self.tags: list[Tag] = []
+        self.address: Address | None = None
 
     def add_birthday(self, date):
         self.birthday = Birthday(date)
 
     def add_phone(self, phone: str):
         self.phones.append(Phone(phone))
+
+    def add_address(self, address: str):
+        self.address = Address(address)
+
+    def edit_address(self, address: str):
+        if self.address:
+            self.address.value = address
+        else:
+            self.add_address(address)
 
     def edit_phone(self, previous_phone, new_phone):
         found_phone = self.find_phone(previous_phone)
