@@ -22,20 +22,37 @@ def display_contacts_table(records):
     table.add_column("Name", style="bold cyan")
     table.add_column("Phone Numbers", style="green")
     table.add_column("Birthday", style="magenta")
-    # table.add_column("Email", style="yellow")
-    # table.add_column("Address", style="yellow")
+    table.add_column("Emails", style="yellow")
+    table.add_column("Address", style="yellow")
     table.add_column("Tags", style="red")
 
     # Get Record attributes
     for record in records:
         name = str(record.name)
+
+        phones = getattr(record, "phones", None)
         phones = ", ".join([p.value for p in record.phones]) if record.phones else "—"
+
         birthday = str(record.birthday) if record.birthday else "—"
+
+        emails = getattr(record, "emails", None)
+        emails = (
+            ", ".join([e.value for e in record.emails])
+            if hasattr(record, "emails") and record.emails
+            else "—"
+        )
+
+        address = (
+            str(record.address)
+            if hasattr(record, "address") and record.address
+            else "—"
+        )
+
         tags = getattr(record, "tags", None)
         tags = ", ".join(tags) if tags else "—"
 
         table.add_row(
-            name.capitalize(), phones, birthday, tags
+            name.capitalize(), phones, birthday, emails, address, tags
         )  # <- Add email and address inside later and wrap like tags, the same way
 
     console.print(table)
