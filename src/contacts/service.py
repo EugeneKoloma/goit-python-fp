@@ -32,83 +32,89 @@ class PhoneBookService:
         self.book = book
 
     @error_handler
-    def add_contact(self, args: list[str]):
-        name, phone = args
-        record = self.book.find(name)
-        if record is None:
-            if self.book.is_phone_owned(phone):
-                raise PhoneAlreadyOwned(
-                    f"This number {Fore.YELLOW}{phone}{Fore.RESET} already owned."
-                )
+    def add_contact_from_dict(self, data: dict):
+        name = data.get("name")
+        phone = data.get("phone")
+        email = data.get("email")
+        address = data.get("address")
+        birthday = data.get("birthday")
 
-            new_record = Record(name)
-            new_record.add_phone(phone)
-            self.book.add_record(new_record)
-            output_info(
-                f"Contact {Fore.GREEN}{name.capitalize()}{Fore.RESET} with phone number {Fore.GREEN}{phone}{Fore.RESET} has been added."
+        if self.book.is_phone_owned(phone):
+            raise PhoneAlreadyOwned(
+                f"This number {Fore.YELLOW}{phone}{Fore.RESET} already owned."
             )
-            return
 
-        existing_phone = record.find_phone(phone)
-        if existing_phone is None:
-            record.add_phone(phone)
-            output_info(
-                f"New phone number {Fore.GREEN}{phone}{Fore.RESET} was added to {Fore.GREEN}{name.capitalize()}{Fore.RESET}."
-            )
-            return
+        new_record = Record(name)
+        new_record.add_phone(phone)
 
-        output_warning(
-            f"Contact {Fore.GREEN}{name.capitalize()}{Fore.RESET} already has this number {Fore.GREEN}{phone}{Fore.RESET}"
-        )
+        if email:
+            new_record.add_email(email)
+        if address:
+            new_record.add_address(address)
+        if birthday:
+            new_record.add_birthday(birthday)
+
+        self.book.add_record(new_record)
+        output_info(f"Contact {name} has been added successfully.")
 
     @error_handler
-    def change_contacts_phone(self, args) -> None:
-        name, old_phone, new_phone = args
+    def edit_contact_field(self, name: str, field: str, new_value: str):
         record = self.book.find(name)
         if record is None:
-            raise RecordNotFound(
-                f"Record not found for name: {Fore.GREEN}{name}{Fore.RESET}"
-            )
+            raise RecordNotFound(f"Contact {Fore.GREEN}{name}{Fore.RESET} not found.")
 
-        phone = record.find_phone(old_phone)
-        if phone is None:
-            raise FieldNotFound(
-                f"Phone number {Fore.GREEN}{new_phone}{Fore.RESET} not exist. "
-                f"U can add it by using [{Fore.CYAN}add{Fore.RESET}] command, type help for more info."
-            )
+        match field:
+            case "name":
+                record.name.value = new_value
+            case "phone":
+                if self.book.is_phone_owned(new_value):
+                    raise PhoneAlreadyOwned(
+                        f"This number {Fore.YELLOW}{new_value}{Fore.RESET} already owned."
+                    )
+                if record.phones:
+                    record.phones[0].value = new_value
+                else:
+                    record.add_phone(new_value)
+            case "email":
+                record.add_email(new_value)
+            case "address":
+                record.add_address(new_value)
+            case "birthday":
+                record.add_birthday(new_value)
+            case _:
+                raise FieldNotFound(
+                    f"Field {Fore.YELLOW}{field}{Fore.RESET} not recognized."
+                )
 
-        if self.book.is_phone_owned(new_phone):
-            raise PhoneAlreadyOwned(
-                f"This number {Fore.YELLOW}{new_phone}{Fore.RESET} already owned."
-            )
+        output_info(f"Contact {name}'s field '{field}' has been updated.")
 
-        phone.value = new_phone
-        output_info(
-            f"Contact {Fore.GREEN}{name.capitalize()}{Fore.RESET} has been updated with new phone number {Fore.GREEN}{phone}{Fore.RESET}."
-        )
+    @error_handler
+    def show_all_contacts(self):
+        display_contacts_table(self.book.data.values())
+
+    @error_handler
+    def show_next_n_days_birthdays(self, args: list):
+        try:
+            days_to = int(args[0].strip(" ,")) if args else 7
+        except ValueError:
+            raise InvalidDaysInput(f"Wrong days input: {args[0]}")
+
+        congrats_list = self.book.find_next_n_days_bithdays(days_to)
+        if congrats_list:
+            display_birthdays_table(congrats_list, days_to)
+        else:
+            output_info(f"No birthdays in the next {days_to} days.")
 
     @error_handler
     def show_contacts_phones(self, args):
         name = args[0]
         record = self.book.find(name)
         if record is None:
-            raise RecordNotFound(f"Record not found with name: {name}")
-
-        display_contacts_table([record])
-
-    @error_handler
-    def set_birthday(self, args):
-        name, date = args
-        record = self.book.find(name)
-        if record is None:
             raise RecordNotFound(
                 f"Record not found with name: {Fore.GREEN}{name}{Fore.RESET}"
             )
 
-        record.add_birthday(date)
-        output_info(
-            f"Contact's {Fore.GREEN}{name.capitalize()}{Fore.RESET} birthday was updated: {Fore.GREEN}{date}{Fore.RESET}."
-        )
+        display_contacts_table([record])
 
     @error_handler
     def get_birthday(self, args):
@@ -120,38 +126,41 @@ class PhoneBookService:
             )
 
         if record.birthday is None:
-            output_warning(
-                f"{Fore.GREEN}{name.capitalize()}{Fore.RESET} has not birthday setted."
+            output_warning(f"{name} has not birthday set.")
+
+        output_info(f"{name} has a birthday at: {str(record.birthday)}")
+
+    @error_handler
+    def set_birthday(self, args):
+        name, date = args
+        record = self.book.find(name)
+        if record is None:
+            raise RecordNotFound(f"Record not found with name: {name}")
+
+        record.add_birthday(date)
+        output_info(f"Contact's {name} birthday was updated: {date}.")
+
+    @error_handler
+    def change_contacts_phone(self, args) -> None:
+        name, old_phone, new_phone = args
+        record = self.book.find(name)
+        if record is None:
+            raise RecordNotFound(f"Record not found for name: {name}")
+
+        phone = record.find_phone(old_phone)
+        if phone is None:
+            raise FieldNotFound(
+                f"Phone number {new_phone} not exist. You can add it using the 'add' command."
             )
 
+        if self.book.is_phone_owned(new_phone):
+            raise PhoneAlreadyOwned(f"This number {new_phone} already owned.")
+
+        phone.value = new_phone
         output_info(
-            f"{Fore.GREEN}{name.capitalize()}{Fore.RESET} has a birthday at: {Fore.GREEN}{str(record.birthday)}{Fore.RESET}"
+            f"Contact {name} has been updated with new phone number {new_phone}."
         )
 
-    @error_handler
-    def show_next_n_days_birthdays(self, args: list):
-        """
-        Команда формування таблиці із списком іменинників на найближчі days_to дні
-        """
-        try:
-            days_to = (
-                int(args[0].strip(" ,")) if args else 7
-            )  # <- Set input number of days instead of 7 here later
-        except ValueError:
-            raise InvalidDaysInput(f"Wrong days input: {args[0]}")
-
-        # Отримаємо список найближчих іменинників з AddressBook та редагуємо для табличного виводу
-        congrats_list = self.book.find_next_n_days_bithdays(days_to)
-        if congrats_list:
-            display_birthdays_table(congrats_list, days_to)
-        else:
-            output_info(f"No birthdays in the next {days_to} days.")
-
-    @error_handler
-    def show_all_contacts(self):
-        display_contacts_table(self.book.data.values())
-
-    # Call for elactic search for contacts
     @error_handler
     def search_contacts(book, query: str):
         return elastic_search(book.data.values(), query)

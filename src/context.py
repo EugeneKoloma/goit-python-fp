@@ -1,5 +1,4 @@
 import pickle
-import sys
 from collections import namedtuple
 from contextlib import contextmanager
 
@@ -32,19 +31,18 @@ def load_data(filename=""):
 
 @contextmanager
 def data_cxt_mngr():
+    book = None
+    notes = None
+    loaded_data = namedtuple("LoadedData", ["book", "notes"])
     try:
-        loaded_data = namedtuple("LoadedData", ["book", "notes"])
-        book = load_data("contacts_book.pkl")
-        if book is None:
-            book = ContactsBook()
-        notes = load_data("notes_book.pkl")
-        if notes is None:
-            notes = {}
+        book = load_data("contacts_book.pkl") or ContactsBook()
+        notes = load_data("notes_book.pkl") or {}
         yield loaded_data(book, notes)
     except Exception as error:
         print(f"An error occurred: {error}")
-        raise error
+        raise
     finally:
-        save_data(book, "contacts_book.pkl")
-        save_data(notes, "notes_book.pkl")
-        sys.exit(0)
+        if book is not None:
+            save_data(book, "contacts_book.pkl")
+        if notes is not None:
+            save_data(notes, "notes_book.pkl")

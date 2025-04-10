@@ -8,7 +8,7 @@ Command Use Example for tags in contacts:
 
 from colorama import Fore
 
-from common.tag import Tag
+from common.Tag import Tag
 
 from .ContactFields import Address, Birthday, Email, Name, Phone
 
