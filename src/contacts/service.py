@@ -1,8 +1,19 @@
 from colorama import Fore
 
 from decorators import error_handler
-from exceptions import FieldNotFound, PhoneAlreadyOwned, RecordNotFound
-from output import output_info, output_warning
+from exceptions import (
+    FieldNotFound,
+    InvalidDaysInput,
+    PhoneAlreadyOwned,
+    RecordNotFound,
+)
+from output import (
+    display_birthdays_table,
+    display_contacts_table,
+    output_info,
+    output_warning,
+)
+from utils.search import elastic_search
 
 from .ContactsBook import ContactsBook
 from .Records import Record
@@ -62,7 +73,7 @@ class PhoneBookService:
         phone = record.find_phone(old_phone)
         if phone is None:
             raise FieldNotFound(
-                f"Phone number {Fore.GREEN}{new_phone}{Fore.RESET} not exist. "\
+                f"Phone number {Fore.GREEN}{new_phone}{Fore.RESET} not exist. "
                 f"U can add it by using [{Fore.CYAN}add{Fore.RESET}] command, type help for more info."
             )
 
@@ -81,11 +92,9 @@ class PhoneBookService:
         name = args[0]
         record = self.book.find(name)
         if record is None:
-            raise RecordNotFound(
-                f"Record not found with name: {Fore.GREEN}{name}{Fore.RESET}"
-            )
+            raise RecordNotFound(f"Record not found with name: {name}")
 
-        print(self.book)
+        display_contacts_table([record])
 
     @error_handler
     def set_birthday(self, args):
@@ -120,26 +129,29 @@ class PhoneBookService:
         )
 
     @error_handler
-    def show_next_week_birthdays(self, args: list):
-        '''
-        Команда формавання таблиці із списком іменинників на найближчі days_to дні
-        '''
+    def show_next_n_days_birthdays(self, args: list):
+        """
+        Команда формування таблиці із списком іменинників на найближчі days_to дні
+        """
         try:
-            days_to = args[0].strip(" ").strip(",")
-            days_to = int(days_to)
-        except IndexError:
-            days_to = 7
+            days_to = (
+                int(args[0].strip(" ,")) if args else 7
+            )  # <- Set input number of days instead of 7 here later
+        except ValueError:
+            raise InvalidDaysInput(f"Wrong days input: {args[0]}")
+
         # Отримаємо список найближчих іменинників з AddressBook та редагуємо для табличного виводу
-        congrats_list = self.book.find_next_week_bithdays(days_to)
-        if congrats_list:       
-            congrats_list_str = f"Список іменинників на наступні {days_to} днів:".center(56) + f"\n{'-' * 56}\n\
-|{'Names':^15}|{'Congratulation date':^25}|{"Days left":^12}|\n{'-' * 56}\n"   
-            for item in congrats_list:
-                congrats_list_str += f"|{item["name"]:<15}|{item["congratulation_date"]:^25}|{item["days_to_user_congrats"]:^12}|\n"
-            congrats_list_str += f"{'-' * 56}"
-            return congrats_list_str
-        return f"В найближчі {days_to} днів немає іменинників!"
+        congrats_list = self.book.find_next_n_days_bithdays(days_to)
+        if congrats_list:
+            display_birthdays_table(congrats_list, days_to)
+        else:
+            output_info(f"No birthdays in the next {days_to} days.")
 
     @error_handler
     def show_all_contacts(self):
-        print(self.book)
+        display_contacts_table(self.book.data.values())
+
+    # Call for elactic search for contacts
+    @error_handler
+    def search_contacts(book, query: str):
+        return elastic_search(book.data.values(), query)
