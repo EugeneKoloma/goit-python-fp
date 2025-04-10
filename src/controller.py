@@ -5,6 +5,7 @@ from prompt_toolkit.completion import Completer, Completion
 from contacts import cntcts_controller
 from context import data_cxt_mngr
 from output import output_warning
+from output.help_ import show_help_panels
 
 COMMAND_TREE = {
     "contacts": [
@@ -77,18 +78,7 @@ def bootstrap():
                             f"{Fore.BLUE}************** Notes **************{Fore.RESET}"
                         )
                     case "help":
-                        print(
-                            "Available commands:\n"
-                            f"{Fore.CYAN}add {Fore.GREEN}[Name] [Phone Number]{Fore.RESET}- create new record\n"
-                            f"{Fore.CYAN}change {Fore.GREEN}[Name] [New Phone Number]{Fore.RESET}- change phone number by [Name]\n"
-                            f"{Fore.CYAN}phone {Fore.GREEN}[Phone Number]{Fore.RESET}- display owner name\n"
-                            f"{Fore.CYAN}all {Fore.RESET}- list all users with their number\n"
-                            f"{Fore.CYAN}add-birthday {Fore.GREEN}[Name] [DD.MM.YYYY]{Fore.RESET}- add to provided contact its birthday\n"
-                            f"{Fore.CYAN}show-birthday {Fore.GREEN}[Name]{Fore.RESET}- display contacts birthday\n"
-                            f"{Fore.CYAN}birthdays {Fore.RESET}- show contacts which have birthdays in next 7 days\n"
-                            f"{Fore.CYAN}help {Fore.RESET}- display commands list\n"
-                            f"{Fore.CYAN}exit | close {Fore.RESET}- close the program"
-                        )
+                        show_help_panels()
                     case _:
                         output_warning(
                             f"Unknown command: [{Fore.RED}{command}{Fore.RESET}]. Please, use [{Fore.CYAN}help{Fore.RESET}] to see available commands."
