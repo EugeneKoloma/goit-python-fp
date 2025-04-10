@@ -25,9 +25,9 @@ class BirthdayValidator(Validator):
     def validate(self, document):
         if document.text:
             try:
-                datetime.strptime(document.text, "%Y-%m-%d")
+                datetime.strptime(document.text, "%d.%m.%Y")
             except ValueError:
-                raise ValidationError(message="Date must be in YYYY-MM-DD format.")
+                raise ValidationError(message="Date must be in DD.MM.YYYY format.")
 
 
 # Get contact details for autofill purposes
@@ -45,7 +45,7 @@ def get_contact_details():
     email = prompt("Email (optional): ", validator=EmailValidator())
     address = prompt("Address (optional): ")
     birthday = prompt(
-        "Birthday (optional, YYYY-MM-DD): ", validator=BirthdayValidator()
+        "Birthday (optional, DD.MM.YYYY): ", validator=BirthdayValidator()
     )
 
     return {
@@ -63,7 +63,7 @@ def edit_contact_prompt(book):
     name_completer = WordCompleter(names, ignore_case=True)
     name = prompt("Which contact do you want to edit? ", completer=name_completer)
 
-    field_options = ["name", "phone", "email", "address", "birthday"]  # <- email
+    field_options = ["name", "phone", "email", "address", "birthday"]
     field_completer = WordCompleter(field_options, ignore_case=True)
     field = prompt("Which field do you want to edit? ", completer=field_completer)
 
