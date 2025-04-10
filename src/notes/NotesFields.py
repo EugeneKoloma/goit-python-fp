@@ -58,4 +58,4 @@ class Date:
         self.__date = value
 
     def __str__(self):
-        return self._date.strftime(Date._date_format)
+        return self.__date.strftime(Date._date_format)
