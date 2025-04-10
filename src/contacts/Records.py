@@ -10,7 +10,7 @@ from colorama import Fore
 
 from common.tag import Tag
 
-from .ContactFields import Address, Birthday, Name, Phone
+from .ContactFields import Address, Birthday, Email, Name, Phone
 
 
 class Record:
@@ -20,6 +20,7 @@ class Record:
         self.birthday: Birthday | None = None
         self.tags: list[Tag] = []
         self.address: Address | None = None
+        self.emails: list[Email] = []
 
     def add_birthday(self, date):
         self.birthday = Birthday(date)
@@ -35,6 +36,29 @@ class Record:
             self.address.value = address
         else:
             self.add_address(address)
+
+    def add_email(self, email: str):
+        if email in [email.value for email in self.emails]:
+            raise ValueError(f"Email {email} already exists.")
+        self.emails.append(Email(email))
+
+    def edit_email(self, previous_email: str, new_email: str):
+        found_email = next(
+            (email for email in self.emails if email.value == previous_email), None
+        )
+        if found_email:
+            found_email.value = new_email
+        else:
+            raise ValueError(f"Email {previous_email} not found.")
+
+    def remove_email(self, email: str):
+        found_email = next(
+            (email for email in self.emails if email.value == email), None
+        )
+        if found_email:
+            self.emails.remove(found_email)
+        else:
+            raise ValueError(f"Email {email} not found.")
 
     def edit_phone(self, previous_phone, new_phone):
         found_phone = self.find_phone(previous_phone)
