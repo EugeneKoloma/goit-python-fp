@@ -1,4 +1,4 @@
 from .Field import Field
-from .tag import Tag
+from .Tag import Tag
 
 __all__ = ["Field", "Tag"]

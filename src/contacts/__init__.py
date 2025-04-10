@@ -1,7 +1,6 @@
 from .ContactFields import Birthday, Name, Phone
 from .ContactsBook import ContactsBook
-from .context import book_cxt_mngr
-from .controller import bootstrap
+from .controller import conntroller as cntcts_controller
 from .Records import Record
 from .service import PhoneBookService
 
@@ -11,7 +10,6 @@ __all__ = [
     "Phone",
     "Birthday",
     "Record",
-    "bootstrap",
-    "book_cxt_mngr",
+    "cntcts_controller",
     "PhoneBookService",
 ]
