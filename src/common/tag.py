@@ -23,13 +23,17 @@ from colorama import Fore
 
 class Tag:
     def __init__(self, value: str):
-        self._value = value.strip()
+        self._value = value.lower().strip()
 
     def __str__(self):
         return f"{Fore.CYAN}#{self._value}{Fore.RESET}"
 
     def __eq__(self, other):
-        return isinstance(other, Tag) and self._value == other._value
+        if isinstance(other, Tag) and self._value == other._value:
+            return True
+        if isinstance(other, str) and self._value == other:
+            return True
+        return False
 
     def __hash__(self):
         return hash(self._value)

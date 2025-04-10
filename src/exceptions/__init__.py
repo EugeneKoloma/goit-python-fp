@@ -6,6 +6,7 @@ from .TagNotFound import TagNotFound
 from .WrongDateFormat import WrongDateFormat
 from .WrongEmailValue import WrongEmailValue
 from .WrongPhoneNumber import WrongPhoneNumber
+from .NoteNotFoundError import NoteNotFoundError
 
 __all__ = [
     "WrongPhoneNumber",
@@ -13,6 +14,7 @@ __all__ = [
     "RecordNotFound",
     "WrongDateFormat",
     "PhoneAlreadyOwned",
+    "NoteNotFoundError"
     "InvalidDaysInput",
     "WrongEmailValue",
     "TagNotFound",
