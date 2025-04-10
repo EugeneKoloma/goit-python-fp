@@ -2,7 +2,7 @@ import re
 from datetime import datetime as dt
 
 from common import Field
-from exceptions import WrongDateFormat, WrongPhoneNumber
+from exceptions import WrongDateFormat, WrongEmailValue, WrongPhoneNumber
 
 
 class Name(Field):
@@ -70,5 +70,31 @@ class Address(Field):
 
     def __eq__(self, other):
         if isinstance(other, Address):
+            return self.value == other.value
+        return False
+
+
+class Email(Field):
+    __email_pattern = re.compile(r"[^@]+@[^@]+\.[^@]+")
+
+    @staticmethod
+    def validate_email(email: str) -> bool:
+        return bool(Email.__email_pattern.match(email))
+
+    def __init__(self, email: str):
+        self.value = email
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, email: str):
+        if not Email.validate_email(email):
+            raise WrongEmailValue(f"Wrong email format {email}.")
+        self._value = email
+
+    def __eq__(self, other):
+        if isinstance(other, Email):
             return self.value == other.value
         return False
