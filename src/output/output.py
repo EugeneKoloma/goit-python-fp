@@ -69,6 +69,23 @@ def output_error(message: str):
     console.print(panel)
 
 
+def notes_output(notes: dict):        
+    console = Console()
+    for id, note in notes.items():  
+        tags = "#" + " #".join([tag._value for tag in note.tags]) if note.tags else ""
+        panel = Panel(
+            note.context.value + f"\n[bold cyan]{tags}[/bold cyan]", 
+            title=f"[bold magenta]📝 ID{id}[/bold magenta] [bold cyan]| {note.title.value} |[/bold cyan]",
+            style="white on black",
+            padding=(0, 1),
+            border_style="green",
+            expand=False,
+            box=box.DOUBLE,
+            width=100,
+        )
+        console.print(panel) 
+        console.print() 
+
 if __name__ == "__main__":
     output_info("This is an info message.")
     output_error("This is an error message.")

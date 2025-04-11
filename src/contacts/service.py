@@ -153,5 +153,5 @@ class PhoneBookService:
 
     # Call for elactic search for contacts
     @error_handler
-    def search_contacts(book, query: str):
-        return elastic_search(book.data.values(), query)
+    def search_contacts(self, query: str):
+        return elastic_search(self.book.data.values(), query)
