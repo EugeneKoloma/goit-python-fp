@@ -99,12 +99,36 @@ class Record:
 
     def __str__(self):
         birthday = (
-            f"Birthday: {Fore.MAGENTA}{self.birthday}{Fore.RESET}"
+            f"Birthday: {Fore.MAGENTA}{self.birthday}{Fore.RESET}."
             if self.birthday
+            else ""
+        )
+        emails = (
+            f"Emails: {Fore.YELLOW}{' '.join(e.value for e in self.emails)}{Fore.RESET} "
+            if self.emails
+            else ""
+        )
+        address = (
+            f"Address: {Fore.YELLOW}{self.address}{Fore.RESET} " if self.address else ""
+        )
+        tags = (
+            f"Tags: {Fore.LIGHTGREEN_EX}{' '.join(str(tag) for tag in self.tags)}{Fore.RESET} "
+            if self.tags
             else ""
         )
         return (
             f"Contact name: {Fore.CYAN}{self.name._value.capitalize()}{Fore.RESET}. "
             f"Phones: {Fore.YELLOW}{' '.join(p.value for p in self.phones)}{Fore.RESET} "
-            + birthday
+            f"{emails}{tags}{address}{birthday}"
         )
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        if "emails" not in state:
+            self.emails = []
+        if "address" not in state:
+            self.address = None
+        if "birthday" not in state:
+            self.birthday = None
+        if "tags" not in state:
+            self.tags = []
