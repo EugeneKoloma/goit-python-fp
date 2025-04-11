@@ -1,4 +1,7 @@
+import re
+
 from colorama import Fore
+from rapidfuzz import fuzz
 
 from contacts import Birthday, Email, Phone
 from decorators import error_handler
@@ -107,6 +110,7 @@ class PhoneBookService:
                 record.add_address(new_value)
             case "birthday":
                 record.add_birthday(new_value)
+
             case "tag":
                 if not old_value:
                     record.add_tag(new_value)
@@ -274,3 +278,41 @@ class PhoneBookService:
     @error_handler
     def get_all_contact_names(self) -> list[str]:
         return [record.name for record in self.book.data.values()]
+
+    @error_handler
+    def find_contacts(self, query: str, mode="smart") -> list:
+        results = []
+
+        for record in self.book.data.values():
+            # Build one long string to search in
+            parts = [
+                str(record.name),
+                *[str(p) for p in getattr(record, "phones", [])],
+                *[str(e) for e in getattr(record, "emails", [])],
+                str(getattr(record, "birthday", "")) or "",
+                str(getattr(record, "address", "")) or "",
+                " ".join(str(t) for t in getattr(record, "tags", [])),
+            ]
+
+            full_text = " ".join(parts).lower()
+
+            if mode == "regex":
+                try:
+                    if re.search(query, full_text, re.IGNORECASE):
+                        results.append(record)
+                except re.error:
+                    pass  # Invalid regex
+            elif mode == "fuzzy":
+                if fuzz.partial_ratio(query.lower(), full_text) > 75:
+                    results.append(record)
+            else:  # Smart = try regex first
+                try:
+                    if re.search(query, full_text, re.IGNORECASE):
+                        results.append(record)
+                        continue
+                except re.error:
+                    pass
+                if fuzz.partial_ratio(query.lower(), full_text) > 75:
+                    results.append(record)
+
+        return results

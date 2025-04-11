@@ -119,6 +119,24 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                     f"{Fore.LIGHTBLUE_EX}{book_service.show_next_n_days_birthdays(args)}{Fore.RESET}"
                 )
 
+            case "find":
+                if not args:
+                    print("Please provide a query to search.")
+                    return
+
+                query = args[0]
+                mode = args[1] if len(args) > 1 else "smart"
+                results = book_service.find_contacts(query, mode=mode)
+
+                if results:
+                    from output.rich_table import display_contacts_table
+
+                    display_contacts_table(results)
+                else:
+                    print(
+                        f"{Fore.YELLOW}No contacts found matching: {query}{Fore.RESET}"
+                    )
+
             case "undo":
                 restored = load_undo_state()
                 if restored:
