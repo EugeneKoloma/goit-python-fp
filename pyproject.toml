@@ -5,6 +5,7 @@ description = "GoIT Python Core Final Project"
 requires-python = ">=3.12"
 dependencies = [
     "colorama>=0.4.6",
+    "prompt-toolkit>=3.0.50",
     "rich>=14.0.0",
 ]
 

@@ -1,56 +1,113 @@
-from colorama import Fore, init
+from colorama import Fore
 
-from output import output_info, output_warning
+from common.input_prompts import (
+    edit_contact_prompt,
+    get_contact_details,
+    get_supported_fields,
+    is_valid_field,
+    prompt_for_field,
+)
 
-from .context import book_cxt_mngr
+from .ContactsBook import ContactsBook
 from .service import PhoneBookService
 
 
-def bootstrap():
-    init()
-    print(f"{Fore.BLUE}**** Welcome to the assistant bot! ****{Fore.RESET}")
-    with book_cxt_mngr() as book:
-        book_service = PhoneBookService(book)
-        while True:
-            command, *args = input("Enter a command: ").strip().lower().split()
-            match command:
-                case "exit" | "close":
+def conntroller(book: ContactsBook):  # consider renaming to `controller`
+    book_service = PhoneBookService(book)
+
+    def commands(*args):
+        if not args:
+            return
+
+        action, *args = args
+        match action:
+            case "add":
+                if not args:
+                    print(f"{Fore.LIGHTBLUE_EX}Adding contact...{Fore.RESET}")
+                    data = get_contact_details()
+                    book_service.add_contact_from_dict(data)
+
+                elif len(args) == 1:
+                    field = args[0]
+                    if not is_valid_field(field):
+                        supported = ", ".join(get_supported_fields())
+                        print(
+                            f"{Fore.RED}Unknown field. Choose from: {supported}{Fore.RESET}"
+                        )
+                        return
+                    value = prompt_for_field(field)
+                    book_service.add_contact_from_dict({field: value})
+
+                elif len(args) == 3:
+                    name, field, value = args
+                    if not is_valid_field(field):
+                        print(f"{Fore.RED}Unknown field '{field}'.{Fore.RESET}")
+                        return
+                    if not book_service.validate_field(field, value):
+                        print(f"{Fore.RED}Invalid value for {field}.{Fore.RESET}")
+                        return
+
+                    if book_service.contact_exists(name):
+                        book_service.edit_contact_field(name, field, value)
+                        print(f"{Fore.GREEN}Updated {field} for {name}{Fore.RESET}")
+                    else:
+                        # Create new contact with name and one field
+                        contact_data = {"name": name, field: value}
+                        book_service.add_contact_from_dict(contact_data)
+                        print(
+                            f"{Fore.GREEN}Created new contact '{name}' with {field}.{Fore.RESET}"
+                        )
+
+                else:
                     print(
-                        f"{Fore.BLUE}************** Goodbye! **************{Fore.RESET}"
+                        f"{Fore.RED}Usage:\\n"
+                        f"  contact add\\n"
+                        f"  contact add phone\\n"
+                        f"  contact add <name> <field> <value>{Fore.RESET}"
                     )
-                    return
-                case "hello":
-                    output_info(
-                        "Hello! I'm a phone book assistant. How can I help you?"
-                    )
-                case "add":
-                    book_service.add_contact(args)
-                case "change":
-                    book_service.change_contacts_phone(args)
-                case "phone":
-                    book_service.show_contacts_phones(args)
-                case "all":
-                    book_service.show_all_contacts()
-                case "add-birthday":
-                    book_service.set_birthday(args)
-                case "show-birthday":
-                    book_service.get_birthday(args)
-                case "birthdays":
-                    book_service.show_next_n_days_birthdays(args)
-                case "help":
-                    print(
-                        "Available commands:\n"
-                        f"{Fore.CYAN}add {Fore.GREEN}[Name] [Phone Number]{Fore.RESET}- create new record\n"
-                        f"{Fore.CYAN}change {Fore.GREEN}[Name] [New Phone Number]{Fore.RESET}- change phone number by [Name]\n"
-                        f"{Fore.CYAN}phone {Fore.GREEN}[Phone Number]{Fore.RESET}- display owner name\n"
-                        f"{Fore.CYAN}all {Fore.RESET}- list all users with their number\n"
-                        f"{Fore.CYAN}add-birthday {Fore.GREEN}[Name] [DD.MM.YYYY]{Fore.RESET}- add to provided contact its birthday\n"
-                        f"{Fore.CYAN}show-birthday {Fore.GREEN}[Name]{Fore.RESET}- display contacts birthday\n"
-                        f"{Fore.CYAN}birthdays {Fore.RESET}- show contacts which have birthdays in next 7 days\n"
-                        f"{Fore.CYAN}help {Fore.RESET}- display commands list\n"
-                        f"{Fore.CYAN}exit | close {Fore.RESET}- close the program"
-                    )
-                case _:
-                    output_warning(
-                        f"Unknown command: [{Fore.RED}{command}{Fore.RESET}]. Please, use [{Fore.CYAN}help{Fore.RESET}] to see available commands."
-                    )
+
+            case "edit":
+                print(f"{Fore.LIGHTBLUE_EX}Editing contact...{Fore.RESET}")
+                name, field, new_value = edit_contact_prompt(book)
+                if name and field and new_value:
+                    book_service.edit_contact_field(name, field, new_value)
+
+            case "change":
+                book_service.change_contacts_phone(args)
+
+            case "delete":
+                print("Delete!")  # Put real delete function here
+
+            case "remove":
+                book_service.remove_contact_field(*args)
+
+            case "phone":
+                book_service.show_contacts_phones(args)
+
+            case "all":
+                book_service.show_all_contacts()
+
+            case "add-birthday":
+                from common.input_prompts import prompt_missing_args
+
+                provided = {}
+                if len(args) > 0:
+                    provided["name"] = args[0]
+                if len(args) > 1:
+                    provided["birthday"] = args[1]
+
+                filled = prompt_missing_args(["name", "birthday"], provided)
+                book_service.set_birthday([filled["name"], filled["birthday"]])
+
+            case "show-birthday":
+                book_service.get_birthday(args)
+
+            case "birthdays":
+                print(
+                    f"{Fore.LIGHTBLUE_EX}{book_service.show_next_n_days_birthdays(args)}{Fore.RESET}"
+                )
+
+            case _:
+                print(f"{Fore.RED}Unknown contact command: {action}{Fore.RESET}")
+
+    return commands

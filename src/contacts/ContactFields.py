@@ -35,8 +35,11 @@ class Birthday(Field):
 
     @staticmethod
     def validate_date(date: str) -> bool:
-        is_datetime = dt.strptime(date, Birthday.date_format_pattern)
-        return bool(is_datetime)
+        try:
+            dt.strptime(date, Birthday.date_format_pattern)
+            return True
+        except ValueError:
+            return False
 
     def __init__(self, date: str):
         self.value = date
