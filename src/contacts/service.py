@@ -18,6 +18,7 @@ from utils.search import elastic_search
 
 from .ContactsBook import ContactsBook
 from .Records import Record
+from .undo import save_undo_state
 
 
 class PhoneBookService:
@@ -34,6 +35,8 @@ class PhoneBookService:
 
     @error_handler
     def add_contact_from_dict(self, data: dict):
+        save_undo_state(self.book)
+
         name = data.get("name")
         phone = data.get("phone")
         email = data.get("email")
@@ -67,6 +70,8 @@ class PhoneBookService:
     def edit_contact_field(
         self, name: str, field: str, new_value: str, old_value: str = ""
     ):
+        save_undo_state(self.book)
+
         record = self.book.find(name)
         if record is None:
             raise RecordNotFound(f"Contact {Fore.GREEN}{name}{Fore.RESET} not found.")
@@ -122,6 +127,8 @@ class PhoneBookService:
 
     @error_handler
     def remove_contact_field(self, name: str, field: str, value: str):
+        save_undo_state(self.book)
+
         record = self.book.find(name)
         if record is None:
             raise RecordNotFound(f"Contact {Fore.GREEN}{name}{Fore.RESET} not found.")
@@ -216,6 +223,8 @@ class PhoneBookService:
 
     @error_handler
     def change_contacts_phone(self, args) -> None:
+        save_undo_state(self.book)
+
         name, old_phone, new_phone = args
         record = self.book.find(name)
         if record is None:
