@@ -1,4 +1,4 @@
-from .ContactFields import Birthday, Name, Phone
+from .ContactFields import Address, Birthday, Email, Name, Phone
 from .ContactsBook import ContactsBook
 from .controller import conntroller as cntcts_controller
 from .Records import Record
@@ -9,6 +9,8 @@ __all__ = [
     "Name",
     "Phone",
     "Birthday",
+    "Email",
+    "Address",
     "Record",
     "cntcts_controller",
     "PhoneBookService",

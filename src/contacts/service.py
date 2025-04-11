@@ -1,5 +1,6 @@
 from colorama import Fore
 
+from contacts import Birthday, Email, Phone
 from decorators import error_handler
 from exceptions import (
     EmailAlreadyOwned,
@@ -16,7 +17,6 @@ from output import (
 )
 from utils.search import elastic_search
 
-from .ContactFields import is_valid_birthday, is_valid_email, is_valid_phone
 from .ContactsBook import ContactsBook
 from .Records import Record
 
@@ -247,13 +247,17 @@ class PhoneBookService:
 
     @error_handler
     def validate_field(self, field: str, value: str) -> bool:
-        if field == "phone":
-            return is_valid_phone(value)
-        elif field == "email":
-            return is_valid_email(value)
-        elif field == "birthday":
-            return is_valid_birthday(value)
-        # Other basic checks
+        validators = {
+            "phone": Phone.validate_phone_number,
+            "email": Email.validate_email,
+            "birthday": Birthday.validate_date,
+        }
+
+        validator = validators.get(field)
+        if validator:
+            return validator(value)
+
+        # Fallback for simple fields like name, address, tag etc.
         return bool(value.strip())
 
     @error_handler
