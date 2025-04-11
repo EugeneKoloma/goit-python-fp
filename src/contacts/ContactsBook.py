@@ -31,6 +31,12 @@ class ContactsBook(UserDict):
         ]
         return bool(phone in all_phones)
 
+    def is_email_owned(self, email: str):
+        all_emails = [
+            email.value for record in self.data.values() for email in record.emails
+        ]
+        return bool(email in all_emails)
+
     def delete(self, name):
         self.data.pop(name)
 

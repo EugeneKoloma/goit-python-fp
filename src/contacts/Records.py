@@ -25,9 +25,6 @@ class Record:
     def add_birthday(self, date):
         self.birthday = Birthday(date)
 
-    def add_phone(self, phone: str):
-        self.phones.append(Phone(phone))
-
     def add_address(self, address: str):
         self.address = Address(address)
 
@@ -37,28 +34,31 @@ class Record:
         else:
             self.add_address(address)
 
+    def find_email(self, email: str) -> Email | None:
+        found_email = next((item for item in self.emails if item.value == email), None)
+        return found_email
+
     def add_email(self, email: str):
         if email in [email.value for email in self.emails]:
             raise ValueError(f"Email {email} already exists.")
         self.emails.append(Email(email))
 
     def edit_email(self, previous_email: str, new_email: str):
-        found_email = next(
-            (email for email in self.emails if email.value == previous_email), None
-        )
+        found_email = self.find_email(previous_email)
         if found_email:
             found_email.value = new_email
         else:
             raise ValueError(f"Email {previous_email} not found.")
 
     def remove_email(self, email: str):
-        found_email = next(
-            (email for email in self.emails if email.value == email), None
-        )
+        found_email = self.find_email(email)
         if found_email:
             self.emails.remove(found_email)
         else:
             raise ValueError(f"Email {email} not found.")
+
+    def add_phone(self, phone: str):
+        self.phones.append(Phone(phone))
 
     def edit_phone(self, previous_phone, new_phone):
         found_phone = self.find_phone(previous_phone)
@@ -72,25 +72,27 @@ class Record:
         found_phone = next((item for item in self.phones if item.value == phone), None)
         return found_phone
 
-    # Add tag to contact record
     def add_tag(self, tag: Tag):
         if tag not in self.tags:
             self.tags.append(tag)
 
-    # Remove tag from contact record
     def remove_tag(self, tag: Tag):
         self.tags = [t for t in self.tags if t != tag]
 
-    # Show tags from contact record
     def list_tags(self):
         return [str(tag) for tag in self.tags]
+
+    def find_tag(self, tag: str) -> Tag | None:
+        found_tag = next((item for item in self.tags if item.value == tag), None)
+        return found_tag
 
     # Return a list of string-convertible fields for elastic search to function properly
     def get_all_fields(self):
         return [
             str(self.name),
             *[str(phone) for phone in self.phones],
-            # *[str(email) for email in self.emails], # Uncomment as soon as we have e-mail field
+            *[str(email) for email in self.emails],
+            str(self.address) if self.address else "",
             str(self.birthday) if self.birthday else "",
             *[str(tag) for tag in self.tags],
         ]
