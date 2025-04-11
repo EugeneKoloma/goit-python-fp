@@ -2,7 +2,7 @@ from colorama import Fore
 
 from common.input_prompts import (
     edit_contact_prompt,
-    get_contact_details,
+    get_new_contact_details,
     get_supported_fields,
     is_valid_field,
     prompt_for_field,
@@ -24,7 +24,7 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
             case "add":
                 if not args:
                     print(f"{Fore.LIGHTBLUE_EX}Adding contact...{Fore.RESET}")
-                    data = get_contact_details()
+                    data = get_new_contact_details(book)
                     book_service.add_contact_from_dict(data)
 
                 elif len(args) == 1:

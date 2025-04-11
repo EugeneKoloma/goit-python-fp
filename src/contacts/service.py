@@ -3,7 +3,6 @@ from colorama import Fore
 from contacts import Birthday, Email, Phone
 from decorators import error_handler
 from exceptions import (
-    EmailAlreadyOwned,
     FieldNotFound,
     InvalidDaysInput,
     PhoneAlreadyOwned,
@@ -42,10 +41,11 @@ class PhoneBookService:
         birthday = data.get("birthday")
         tags = data.get("tags")
 
-        if self.book.is_phone_owned(phone):
-            raise PhoneAlreadyOwned(
-                f"This number {Fore.YELLOW}{phone}{Fore.RESET} already owned."
-            )
+        # Moving validation to separate validators.py level
+        # if self.book.is_phone_owned(phone):
+        #     raise PhoneAlreadyOwned(
+        #         f"This number {Fore.YELLOW}{phone}{Fore.RESET} already owned."
+        #     )
 
         new_record = Record(name)
         new_record.add_phone(phone)
@@ -84,10 +84,11 @@ class PhoneBookService:
                 else:
                     record.add_phone(new_value)
             case "email":
-                if self.book.is_email_owned(new_value):
-                    raise EmailAlreadyOwned(
-                        f"This email {Fore.YELLOW}{new_value}{Fore.RESET} already owned."
-                    )
+                # Moving validation to separate validators.py level
+                # if self.book.is_email_owned(new_value):
+                #     raise EmailAlreadyOwned(
+                #         f"This email {Fore.YELLOW}{new_value}{Fore.RESET} already owned."
+                #     )
                 if not old_value:
                     record.add_email(new_value)
                     return
@@ -226,8 +227,9 @@ class PhoneBookService:
                 f"Phone number {new_phone} not exist. You can add it using the 'add' command."
             )
 
-        if self.book.is_phone_owned(new_phone):
-            raise PhoneAlreadyOwned(f"This number {new_phone} already owned.")
+        # Moving validation to separate validators.py level
+        # if self.book.is_phone_owned(new_phone):
+        #     raise PhoneAlreadyOwned(f"This number {new_phone} already owned.")
 
         phone.value = new_phone
         output_info(

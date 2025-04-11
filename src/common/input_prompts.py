@@ -1,46 +1,15 @@
-import re
-from datetime import datetime
-
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
-from prompt_toolkit.validation import ValidationError, Validator
+from prompt_toolkit.validation import Validator
 
-
-# Validate phone
-class PhoneValidator(Validator):
-    def validate(self, document):
-        if not document.text.isdigit():
-            raise ValidationError(message="Phone must contain digits only.")
-
-
-# Validate email
-class EmailValidator(Validator):
-    def validate(self, document):
-        if document.text and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", document.text):
-            raise ValidationError(message="Invalid email format.")
-
-
-# Validate birthday
-class BirthdayValidator(Validator):
-    def validate(self, document):
-        if document.text:
-            try:
-                datetime.strptime(document.text, "%d.%m.%Y")
-            except ValueError:
-                raise ValidationError(message="Date must be in DD.MM.YYYY format.")
-
-
-# Validate tags
-class TagsValidator(Validator):
-    def validate(self, document):
-        if document.text:
-            tags = [tag.strip() for tag in document.text.split(",")]
-            for tag in tags:
-                if not tag.startswith("#") or not tag[1:].isalnum():
-                    raise ValidationError(
-                        message="Each tag must start with '#' and contain only letters or digits (e.g., #Work, #Family)."
-                    )
-
+from contacts.validators import (
+    BirthdayValidator,
+    EmailValidator,
+    NameValidator,
+    PhoneValidator,
+    TagsValidator,
+)
+from output import output_error
 
 field_value_completers = {
     "phone": WordCompleter(
@@ -70,33 +39,61 @@ def prompt_for_field(field: str) -> str:
     return prompt(f"Enter value for {field}: ", completer=completer)
 
 
-# Get contact details for autofill purposes
-def get_contact_details():
-    name = prompt(
-        "Name: ",
-        validator=Validator.from_callable(
-            lambda t: len(t.strip()) > 0,
-            error_message="Name cannot be empty.",
-            move_cursor_to_end=True,
-        ),
+# Get enew contact details for autofill purposes to avoid name field autofill
+def get_new_contact_details(book):
+    name = ask_field(
+        "Name", validator=NameValidator(book)
+    )  # validator should ensure uniqueness!
+    phone = ask_field("Phone", validator=PhoneValidator(book))
+    email = ask_field(
+        "Email (optional)", validator=EmailValidator(book), required=False
+    )
+    address = ask_field("Address (optional)", required=False)
+    birthday = ask_field(
+        "Birthday (optional, DD.MM.YYYY)", validator=BirthdayValidator(), required=False
+    )
+    tags_input = ask_field(
+        "Tags (optional, comma-separated)", validator=TagsValidator(), required=False
     )
 
-    phone = prompt("Phone: ", validator=PhoneValidator())
-    email = prompt("Email (optional): ", validator=EmailValidator())
-    address = prompt("Address (optional): ")
-    birthday = prompt(
-        "Birthday (optional, DD.MM.YYYY): ", validator=BirthdayValidator()
-    )
-    tags_input = prompt("Tags (optional, comma-separated): ", validator=TagsValidator())
     tags = [t.strip() for t in tags_input.split(",")] if tags_input else []
 
     return {
-        "name": name.strip(),
-        "phone": phone.strip(),
-        "email": email.strip() or None,
-        "address": address.strip() or None,
-        "birthday": birthday.strip() or None,
-        "tags": tags or None,
+        "name": name,
+        "phone": phone,
+        "email": email,
+        "address": address,
+        "birthday": birthday,
+        "tags": tags,
+    }
+
+
+# Get existing contact details for autofill purposes
+def get_existing_contact_details(book):
+    name_completer = get_name_completer(book)
+
+    name = ask_field("Name", completer=name_completer)
+    phone = ask_field("Phone", validator=PhoneValidator(book))
+    email = ask_field(
+        "Email (optional)", validator=EmailValidator(book), required=False
+    )
+    address = ask_field("Address (optional)", required=False)
+    birthday = ask_field(
+        "Birthday (optional, DD.MM.YYYY)", validator=BirthdayValidator(), required=False
+    )
+    tags_input = ask_field(
+        "Tags (optional, comma-separated)", validator=TagsValidator(), required=False
+    )
+
+    tags = [t.strip() for t in tags_input.split(",")] if tags_input else []
+
+    return {
+        "name": name,
+        "phone": phone,
+        "email": email,
+        "address": address,
+        "birthday": birthday,
+        "tags": tags,
     }
 
 
@@ -158,3 +155,20 @@ def prompt_missing_args(
         if field not in result or not result[field]:
             result[field] = prompt(f"Enter {field}: ")
     return result
+
+
+def get_name_completer(book):
+    return WordCompleter(list(book.data.keys()), ignore_case=True)
+
+
+def ask_field(label, validator=None, required=True, completer=None):
+    while True:
+        try:
+            value = prompt(f"{label}: ", completer=completer, validator=validator)
+        except Exception as e:
+            output_error(str(e))
+            continue
+
+        if not value and not required:
+            return ""
+        return value
