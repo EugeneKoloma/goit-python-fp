@@ -17,8 +17,10 @@ COMMAND_TREE = {
         "birthdays",
         "add-birthday",
         "show-birthday",
+        "remove",
+        "delete",
     ],
-    "notes": ["add", "search", "tag"],
+    "notes": ["add", "search", "tag", "delete", "edit"],
 }
 
 
