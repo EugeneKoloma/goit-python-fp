@@ -5,6 +5,22 @@ from common import Field
 from exceptions import WrongDateFormat, WrongEmailValue, WrongPhoneNumber
 
 
+def is_valid_phone(phone: str) -> bool:
+    return phone.isdigit() and 7 <= len(phone) <= 15
+
+
+def is_valid_email(email: str) -> bool:
+    return re.match(r"[^@]+@[^@]+\.[^@]+", email) is not None
+
+
+def is_valid_birthday(date_str: str) -> bool:
+    try:
+        dt.strptime(date_str, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+
+
 class Name(Field):
     pass
 

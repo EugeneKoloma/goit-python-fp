@@ -20,9 +20,10 @@ class ContactsBook(UserDict):
         self.data[record.name._value] = record
 
     def find(self, name: str) -> Record | None:
-        if name not in self.data.keys():
-            return None
-        return self.data[name]
+        for record in self.data.values():
+            if str(record.name).lower() == name.lower():
+                return record
+        return None
 
     def is_phone_owned(self, phone: str):
         all_phones = [
