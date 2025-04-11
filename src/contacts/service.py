@@ -15,6 +15,7 @@ from output import (
 )
 from utils.search import elastic_search
 
+from .ContactFields import is_valid_birthday, is_valid_email, is_valid_phone
 from .ContactsBook import ContactsBook
 from .Records import Record
 
@@ -38,6 +39,7 @@ class PhoneBookService:
         email = data.get("email")
         address = data.get("address")
         birthday = data.get("birthday")
+        tags = data.get("tags")
 
         if self.book.is_phone_owned(phone):
             raise PhoneAlreadyOwned(
@@ -53,6 +55,9 @@ class PhoneBookService:
             new_record.add_address(address)
         if birthday:
             new_record.add_birthday(birthday)
+        if tags:
+            for tag in tags:
+                new_record.add_tag(tag)
 
         self.book.add_record(new_record)
         output_info(f"Contact {name} has been added successfully.")
@@ -72,7 +77,7 @@ class PhoneBookService:
                         f"This number {Fore.YELLOW}{new_value}{Fore.RESET} already owned."
                     )
                 if record.phones:
-                    record.phones[0].value = new_value
+                    record.add_phone(new_value)
                 else:
                     record.add_phone(new_value)
             case "email":
@@ -81,6 +86,8 @@ class PhoneBookService:
                 record.add_address(new_value)
             case "birthday":
                 record.add_birthday(new_value)
+            case "tags":
+                record.add_tag(new_value)
             case _:
                 raise FieldNotFound(
                     f"Field {Fore.YELLOW}{field}{Fore.RESET} not recognized."
@@ -164,3 +171,25 @@ class PhoneBookService:
     @error_handler
     def search_contacts(book, query: str):
         return elastic_search(book.data.values(), query)
+
+    @error_handler
+    def contact_exists(self, name: str) -> bool:
+        return any(
+            str(record.name).lower() == name.lower()
+            for record in self.book.data.values()
+        )
+
+    @error_handler
+    def validate_field(self, field: str, value: str) -> bool:
+        if field == "phone":
+            return is_valid_phone(value)
+        elif field == "email":
+            return is_valid_email(value)
+        elif field == "birthday":
+            return is_valid_birthday(value)
+        # Other basic checks
+        return bool(value.strip())
+
+    @error_handler
+    def get_all_contact_names(self) -> list[str]:
+        return [record.name for record in self.book.data.values()]
