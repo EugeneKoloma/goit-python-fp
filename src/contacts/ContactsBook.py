@@ -33,10 +33,7 @@ class ContactsBook(UserDict):
 
     def is_email_owned(self, email: str):
         all_emails = [
-            email.value
-            for record in self.data.values()
-            if hasattr(record, "emails") and record.emails
-            for email in record.emails
+            email.value for record in self.data.values() for email in record.emails
         ]
         return bool(email in all_emails)
 
