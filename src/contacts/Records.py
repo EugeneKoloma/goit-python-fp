@@ -82,6 +82,10 @@ class Record:
     def list_tags(self):
         return [str(tag) for tag in self.tags]
 
+    def find_tag(self, tag: str) -> Tag | None:
+        found_tag = next((item for item in self.tags if item.value == tag), None)
+        return found_tag
+
     # Return a list of string-convertible fields for elastic search to function properly
     def get_all_fields(self):
         return [

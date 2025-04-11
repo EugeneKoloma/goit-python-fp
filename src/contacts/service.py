@@ -89,12 +89,24 @@ class PhoneBookService:
                 old_email = record.find_email(old_value)
                 if old_email:
                     old_email.value = new_value
+                    print(f"Email {old_value} has been updated to {new_value}.")
                 else:
                     raise FieldNotFound(f"Email {old_value} not found.")
             case "address":
                 record.add_address(new_value)
             case "birthday":
                 record.add_birthday(new_value)
+            case "tag":
+                if not old_value:
+                    record.add_tag(new_value)
+                    return
+
+                tag = record.find_tag(old_value)
+                if tag:
+                    tag.value = new_value
+                    print(f"Tag {old_value} has been updated to {new_value}.")
+                else:
+                    raise FieldNotFound(f"Tag {old_value} not found.")
             case _:
                 raise FieldNotFound(
                     f"Field {Fore.YELLOW}{field}{Fore.RESET} not recognized."
