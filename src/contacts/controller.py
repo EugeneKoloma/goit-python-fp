@@ -75,6 +75,12 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
             case "change":
                 book_service.change_contacts_phone(args)
 
+            case "delete":
+                print("Delete!")  # Put real delete function here
+
+            case "remove":
+                book_service.remove_contact_field(*args)
+
             case "phone":
                 book_service.show_contacts_phones(args)
 
