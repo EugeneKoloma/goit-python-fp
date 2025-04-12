@@ -26,7 +26,7 @@ COMMAND_TREE = {
     ],
     "notes": ["create", "edit", "add", "remove", "find", "all"],
     "help": [],
-
+}
 
 
 class CommandCompleter(Completer):
