@@ -43,6 +43,15 @@ class Notes(UserDict):
     def find_notes_by_id(self, id: str) -> dict:
         return {id: self.data[id]}
 
+    def find_notes_by_context(self, query: str) -> dict:
+        query = query.lower()
+        result = [
+            (id, note)
+            for id, note in self.data.items()
+            if query in note.context._value.lower()
+        ]
+        return dict(result)
+
     def find_notes_by_query(self, query: str) -> dict:
         query = query.lower()
         result = [

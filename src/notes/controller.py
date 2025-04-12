@@ -43,10 +43,9 @@ def controller(notes: Notes):
                     field = args[1]
                     if field == "tags":
                         old_tags = args[2].split(",") if len(args) > 2 else []
+                        notes_service.delete_tags_by_note_id([id, old_tags])
                         new_tags = args[3].split(",") if len(args) > 3 else []
-                        notes_service.update_note_by_id(
-                            {"ID": id, "Tags": [old_tags, new_tags]}
-                        )
+                        notes_service.update_note_by_id({"ID": id, "Tags": new_tags})
                     else:
                         new_value = args[2] if len(args) > 2 else None
                         notes_service.update_note_by_id(
@@ -71,19 +70,29 @@ def controller(notes: Notes):
 
             case "find":
                 if not args:
-                    print("Please provide a query to search.")
+                    print("Please provide field (by) and query (what) to search.")
                     return
-                query = args[0]
-                field = args[1] if len(args) > 1 else "all"
+                field = args[0]
+                if field not in [
+                    "id",
+                    "title",
+                    "tags",
+                    "tag",
+                    "context",
+                ]:
+                    field = "elastic_search"
+                query = args[1:]
                 match field:
                     case "id":
-                        notes_service.find_note_by_id([query])
+                        notes_service.find_note_by_id(query)
                     case "title":
-                        notes_service.find_notes_by_title([query])
+                        notes_service.find_notes_by_title(query)
                     case "tags" | "tag":
-                        notes_service.find_notes_by_tags([query])
+                        notes_service.find_notes_by_tags(query)
                     case "context":
-                        notes_service.find_notes_by_context([query])
+                        notes_service.find_notes_by_context(query)
+                    case "elastic_search":
+                        notes_service.elastic_search(query)
                     case _:
                         print(f"{Fore.RED}Unknown field '{field}'.{Fore.RESET}")
 

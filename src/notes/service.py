@@ -86,9 +86,21 @@ class NotesBookService:
     def find_notes_by_context(self, args: list[str]) -> dict | None:
         query = " ".join(args)
         if query:
-            if self.notes_book.find_notes_by_query(query):
-                notes_output(self.notes_book.find_notes_by_query(query))
-                return self.notes_book.find_notes_by_query(query)
+            notes = self.notes_book.find_notes_by_context(query)
+            if notes:
+                notes_output(notes)
+                return notes
+            raise NoteNotFoundError
+
+    @error_handler
+    def elastic_search(self, args: list[str]) -> dict | None:
+        if args:
+            result = {}
+            for query in args:
+                if self.notes_book.find_notes_by_query(query):
+                    result.update(self.notes_book.find_notes_by_query(query))
+                notes_output(result)
+                return result
             raise NoteNotFoundError
 
     @error_handler
