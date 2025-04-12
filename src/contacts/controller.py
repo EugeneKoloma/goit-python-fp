@@ -1,4 +1,5 @@
 import argparse
+import re
 
 from colorama import Fore
 
@@ -27,6 +28,13 @@ def handle_undo(book: ContactsBook):
     output_info("Last operation undone.")
 
 
+# Allow complex values input in quotes like address
+def parse_args(raw: str) -> list:
+    # Flatten re.findall matches into a single string list
+    matches = re.findall(r'"([^"]+)"|(\S+)', raw)
+    return [group1 if group1 else group2 for group1, group2 in matches]
+
+
 def conntroller(book: ContactsBook):  # consider renaming to `controller`
     book_service = PhoneBookService(book)
 
@@ -37,6 +45,10 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
         action, *args = args
         match action:
             case "add":
+                # Convert raw args into a single string and parse respecting quotes
+                raw_input = " ".join(args)
+                args = parse_args(raw_input)
+
                 if not args:
                     # Full interactive mode
                     data = get_new_contact_details(book)
@@ -49,8 +61,10 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                         supported = ", ".join(get_supported_fields())
                         output_error(f"Unknown field. Choose from: {supported}")
                         return
+
                     if field != "name":
                         name = prompt_for_field("name").strip()
+
                     if not name:
                         output_error("Contact name is required.")
                         return
@@ -65,11 +79,58 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                         output_info(f"Updated {field} for {name}")
                     else:
                         book_service.add_contact_from_dict({"name": name, field: value})
+                        output_info(
+                            f"Created new contact '{name.capitalize()}' with {field}."
+                        )
+
+                elif len(args) == 2:
+                    field, value = args
+
+                    if not is_valid_field(field):
+                        supported = ", ".join(get_supported_fields())
+                        output_error(f"Unknown field. Choose from: {supported}")
+                        return
+
+                    if field == "name":
+                        name = value
+                        contact_data = {"name": name}
+
+                        # Prompt for phone
+                        phone = prompt_for_field("phone")
+                        if not book_service.validate_field("phone", phone):
+                            output_error("Invalid phone number.")
+                            return
+                        contact_data["phone"] = phone
+
+                        book_service.add_contact_from_dict(contact_data)
+                        output_info(f"Created new contact '{name}' with phone.")
+
+                    else:
+                        name = prompt_for_field("name").strip()
+                        if not name:
+                            output_error("Contact name is required.")
+                            return
+
+                        if not book_service.validate_field(field, value):
+                            output_error(f"Invalid value for {field}.")
+                            return
+
+                        contact_data = {"name": name, field: value}
+
+                        # Prompt for phone if not provided
+                        if field != "phone":
+                            phone = prompt_for_field("phone")
+                            if not book_service.validate_field("phone", phone):
+                                output_error("Invalid phone number.")
+                                return
+                            contact_data["phone"] = phone
+
+                        book_service.add_contact_from_dict(contact_data)
                         output_info(f"Created new contact '{name}' with {field}.")
 
                 elif len(args) == 3:
                     # Quick-add mode: `contacts add John phone 1234567`
-                    name, field, value = args
+                    field, value, name = args
 
                     if not is_valid_field(field):
                         output_error(f"Unknown field '{field}'")
@@ -81,23 +142,34 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
 
                     if book_service.contact_exists(name):
                         book_service.edit_contact_field(name, field, value)
-                        # output_info(f"{Fore.GREEN}Updated {field} for {name}{Fore.RESET}")
+                        output_info(f"Updated {field} for {name.capitalize()}")
                     else:
                         contact_data = {"name": name, field: value}
+
+                        # Ensure phone is included
+                        if field != "phone":
+                            phone = prompt_for_field("phone")
+                            if not book_service.validate_field("phone", phone):
+                                output_error("Invalid phone format.")
+                                return
+                            contact_data["phone"] = phone
+
                         book_service.add_contact_from_dict(contact_data)
-                        # output_info(f"{Fore.GREEN}Created new contact '{name}' with {field}.{Fore.RESET}")
+                        output_info(
+                            f"Created new contact '{name.capitalize()}' with {field}"
+                        )
 
                 else:
                     output_error(
                         "Usage:\n"
                         "  contacts add\n"
                         "  contacts add phone\n"
-                        "  contacts add <name> <field> <value>"
+                        "  contacts add [field] [value] [name]"
                     )
 
             case "edit":
                 print(f"{Fore.LIGHTBLUE_EX}Editing contact...{Fore.RESET}")
-                name, field, new_value = edit_contact_prompt(book)
+                field, new_value, name = edit_contact_prompt(book)
                 if name and field and new_value:
                     if not book_service.validate_field(field, new_value):
                         output_error(f"Invalid value for {field}: {new_value}")

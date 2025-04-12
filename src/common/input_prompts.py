@@ -94,7 +94,7 @@ def is_valid_field(field: str) -> bool:
 # Autofill for fields for long add command
 def prompt_for_field(field: str) -> str:
     completer = field_value_completers.get(field)
-    return prompt(f"Enter value for {field}: ", completer=completer)
+    return prompt(f"{field.capitalize()}: ", completer=completer)
 
 
 # Get enew contact details for autofill purposes to avoid name field autofill

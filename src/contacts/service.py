@@ -62,7 +62,7 @@ class PhoneBookService:
                 new_record.add_tag(tag)
 
         self.book.add_record(new_record)
-        output_info(f"Contact {name} has been added successfully.")
+        # output_info(f"Contact {name} has been added successfully.")
 
     @error_handler
     def edit_contact_field(
@@ -87,11 +87,6 @@ class PhoneBookService:
                 else:
                     record.add_phone(new_value)
             case "email":
-                # Moving validation to separate validators.py level
-                # if self.book.is_email_owned(new_value):
-                #     raise EmailAlreadyOwned(
-                #         f"This email {Fore.YELLOW}{new_value}{Fore.RESET} already owned."
-                #     )
                 if not old_value:
                     record.add_email(new_value)
                     return
