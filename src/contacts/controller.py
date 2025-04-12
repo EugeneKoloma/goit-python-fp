@@ -14,13 +14,13 @@ from .service import PhoneBookService
 from .undo import load_undo_state
 
 
-def handle_undo(self):
+def handle_undo(book: ContactsBook):
     restored_book = load_undo_state()
     if not restored_book:
         output_error("No undo available.")
         return
-    self.book = restored_book
-    self.book.save_to_disk()  # Overwrite .bin or .json
+    book = restored_book
+    book.save_to_disk()  # Overwrite .bin or .json
     output_info("Last operation undone.")
 
 
@@ -35,7 +35,6 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
         match action:
             case "add":
                 if not args:
-                    print(f"{Fore.LIGHTBLUE_EX}Adding contact...{Fore.RESET}")
                     data = get_new_contact_details(book)
                     book_service.add_contact_from_dict(data)
 

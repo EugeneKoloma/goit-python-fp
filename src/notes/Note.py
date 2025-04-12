@@ -1,9 +1,10 @@
 from datetime import datetime as dtdt
 
 from colorama import Fore
-from NotesFields import Context, Date, Title
 
 from common import Tag
+
+from .NotesFields import Context, Date, Title
 
 
 class Note:
@@ -14,6 +15,15 @@ class Note:
         now = dtdt.now()
         self.created_at: Date = Date(now)
         self.updated_at: Date = Date(now)
+        self.__id: int = None
+
+    @property
+    def id(self) -> int:
+        return self.__id
+
+    @id.setter
+    def id(self, id: int):
+        self.__id = id
 
     def change_title(self, new_title: str):
         self.title._value = new_title

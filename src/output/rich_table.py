@@ -5,6 +5,45 @@ from rich.table import Table
 console = Console()
 
 
+def display_notes_table(records):
+    """
+    Takes a list of `Record` objects and prints them in a formatted table.
+    Each record is expected to have:
+      - title (record.title.value)
+      - context (record.context.value)
+      - updated_at (record.date.value)
+      - tags (record.tags)
+    """
+
+    # Change colors later
+    table = Table(
+        title="Notes",
+        show_lines=False,
+        box=box.ROUNDED,
+        header_style="bold white",
+        row_styles=["on #1a1a1a", "on #2a2a2a"],
+    )
+    table.add_column("Title", style="bold cyan")
+    table.add_column("Context", style="green", width=40)
+    table.add_column("Date", style="magenta")
+    table.add_column("Tags", style="red")
+
+    # Get Record attributes
+    for record in records:
+        title = str(record.title)
+
+        context = str(record.context) if record.context else "—"
+
+        date = str(record.updated_at) if record.updated_at else "—"
+
+        tags = getattr(record, "tags", [])
+        tags = ", ".join([str(tag) for tag in tags]) if tags else "—"
+
+        table.add_row(title.capitalize(), context, date, tags)
+
+    console.print(table)
+
+
 # To display contacts as rich table
 def display_contacts_table(records):
     """

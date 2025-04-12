@@ -3,12 +3,13 @@ from collections import namedtuple
 from contextlib import contextmanager
 
 from contacts import ContactsBook
+from notes import Notes
 from output import output_error
 
 
-def save_data(book, filename=""):
+def save_data(data, filename=""):
     with open(filename, "wb") as file:
-        pickle.dump(book, file)
+        pickle.dump(data, file)
 
 
 def load_data(filename=""):
@@ -36,7 +37,7 @@ def data_cxt_mngr():
     loaded_data = namedtuple("LoadedData", ["book", "notes"])
     try:
         book = load_data("contacts_book.pkl") or ContactsBook()
-        notes = load_data("notes_book.pkl") or {}
+        notes = load_data("notes_book.pkl") or Notes()
         yield loaded_data(book, notes)
     except Exception as error:
         print(f"An error occurred: {error}")
