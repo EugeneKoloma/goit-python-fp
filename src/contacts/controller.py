@@ -82,7 +82,12 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                 print(f"{Fore.LIGHTBLUE_EX}Editing contact...{Fore.RESET}")
                 name, field, new_value = edit_contact_prompt(book)
                 if name and field and new_value:
+                    if not book_service.validate_field(field, new_value):
+                        output_error(f"Invalid value for {field}: {new_value}")
+                        return
+
                     book_service.edit_contact_field(name, field, new_value)
+                    output_info(f"{field.capitalize()} updated for {name}")
 
             case "change":
                 book_service.change_contacts_phone(args)
@@ -122,37 +127,49 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
             case "find":
                 if not args:
                     print(
-                        "Usage: contacts find --name John | --email gmail.com | --tag #work"
+                        "Usage: contacts find [--name NAME] [--phone PHONE] [--email EMAIL] [--birthday BIRTHDAY] [--tag TAG] or just search text"
                     )
                     return
 
-                filters = {}
-                it = iter(args)
-                for arg in it:
-                    if arg.startswith("--"):
-                        field = arg[2:]
-                        if field not in ["name", "email", "tag", "phone"]:
-                            print(
-                                f"{Fore.RED}Unsupported filter: --{field}{Fore.RESET}"
-                            )
-                            return
-                        try:
-                            value = next(it)
-                        except StopIteration:
-                            print(f"{Fore.RED}Missing value for --{field}{Fore.RESET}")
-                            return
-                        filters[field] = value
+                import argparse
 
-                results = book_service.find_contacts(**filters)
+                parser = argparse.ArgumentParser(prog="contacts find", add_help=False)
+                parser.add_argument("--name")
+                parser.add_argument("--phone")
+                parser.add_argument("--email")
+                parser.add_argument("--birthday")
+                parser.add_argument("--tag")
 
-                if results:
-                    from output import display_contacts_table
+                try:
+                    ns, remaining = parser.parse_known_args(args)
 
-                    display_contacts_table(results)
-                else:
-                    print(
-                        f"{Fore.YELLOW}No contacts found matching: {filters}{Fore.RESET}"
+                    filters = {}
+                    if ns.name:
+                        filters["name"] = ns.name
+                    if ns.phone:
+                        filters["phone"] = ns.phone
+                    if ns.email:
+                        filters["email"] = ns.email
+                    if ns.birthday:
+                        filters["birthday"] = ns.birthday
+                    if ns.tag:
+                        filters["tag"] = ns.tag
+
+                    query = " ".join(remaining).strip()
+
+                    results = book_service.find_contacts(
+                        query=query, mode="smart", **filters
                     )
+
+                    if results:
+                        from output import display_contacts_table
+
+                        display_contacts_table(results)
+                    else:
+                        print("No matching contacts found.")
+
+                except Exception as e:
+                    print(f"Error while parsing or searching: {e}")
 
             case "undo":
                 restored = load_undo_state()

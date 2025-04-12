@@ -23,6 +23,7 @@ COMMAND_TREE = {
         "find",
     ],
     "notes": ["add", "search", "tag", "delete", "edit"],
+    "help": [],
 }
 
 

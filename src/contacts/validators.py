@@ -69,7 +69,7 @@ class TagsValidator(Validator):
             for tag in tags:
                 if not tag.startswith("#") or not tag[1:].isalnum():
                     raise ValidationError(
-                        message="Each tag must start with '#' and contain only letters or digits (e.g., #Work, #Family)."
+                        message="Each tag must contain only letters or digits (e.g., #Work, #Family)."
                     )
 
 
