@@ -3,9 +3,8 @@ from rich.table import Table
 
 console = Console()
 
-
 # To display contacts as rich table
-def display_contacts_table(records):
+def display_contacts_table(records, user_fields: list =[]):
     """
     Takes a list of `Record` objects and prints them in a formatted table.
     Each record is expected to have:
@@ -16,15 +15,18 @@ def display_contacts_table(records):
       - address (record.address)
       - tags (record.tags)
     """
-
     # Change colors later
+    default_contacts_fields = {
+        "Name": "bold cyan",
+        "Phones": "green",
+        "Birthday": "magenta",
+        "Emails": "yellow",
+        "Address": "yellow",
+        "Tags": "red",
+    }
     table = Table(title="Contacts", show_lines=True, header_style="bold white")
-    table.add_column("Name", style="bold cyan")
-    table.add_column("Phone Numbers", style="green")
-    table.add_column("Birthday", style="magenta")
-    table.add_column("Emails", style="yellow")
-    table.add_column("Address", style="yellow")
-    table.add_column("Tags", style="red")
+    for field, styles in default_contacts_fields.items():
+        table.add_column(field, style=styles)
 
     # Get Record attributes
     for record in records:
@@ -54,6 +56,22 @@ def display_contacts_table(records):
         table.add_row(
             name.capitalize(), phones, birthday, emails, address, tags
         )  # <- Add email and address inside later and wrap like tags, the same way
+    
+    if user_fields:
+        # Make a list of indexes of fields, that are not in user's choice
+        indexes = []
+        index = 0
+        for field in list(default_contacts_fields.keys()):
+            if field not in user_fields:
+                indexes.append(index)
+            index += 1
+            
+        # Removing the fields, which a not in user's choice, by their index
+        while indexes:
+            table.columns.pop(indexes[0]) 
+            for i in range(len(indexes)):
+                indexes[i] -= 1
+            indexes.remove(indexes[0])
 
     console.print(table)
 

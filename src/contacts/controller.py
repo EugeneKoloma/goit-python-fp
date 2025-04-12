@@ -85,7 +85,7 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                 book_service.show_contacts_phones(args)
 
             case "all":
-                book_service.show_all_contacts()
+                book_service.show_all_contacts(args)
 
             case "add-birthday":
                 from common.input_prompts import prompt_missing_args
