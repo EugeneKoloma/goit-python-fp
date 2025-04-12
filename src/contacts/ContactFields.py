@@ -19,6 +19,9 @@ class Phone(Field):
     def __init__(self, phone: str):
         self.value = phone
 
+    def __str__(self):
+        return self._value or ""
+
     @property
     def value(self):
         return self._value
@@ -59,6 +62,9 @@ class Address(Field):
     def __init__(self, address: str):
         self.value = address
 
+    def __str__(self):
+        return self._value or ""
+
     @property
     def value(self):
         return self._value
@@ -79,6 +85,9 @@ class Address(Field):
 
 class Email(Field):
     __email_pattern = re.compile(r"[^@]+@[^@]+\.[^@]+")
+
+    def __str__(self):
+        return self._value or ""
 
     @staticmethod
     def validate_email(email: str) -> bool:

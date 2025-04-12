@@ -19,6 +19,7 @@ COMMAND_TREE = {
         "add-birthday",
         "show-birthday",
         "remove",
+        "remove contact",
         "delete",
         "undo",
         "find",

@@ -20,7 +20,6 @@ Usage example:
 """
 
 
-
 class Tag:
     def __init__(self, value: str):
         self._value = value.lower().strip()
@@ -30,7 +29,7 @@ class Tag:
         return self.__str__
 
     def __str__(self):
-        return f"#{self._value}"
+        return self._value or ""
 
     def __eq__(self, other):
         if isinstance(other, Tag) and self._value == other._value:
