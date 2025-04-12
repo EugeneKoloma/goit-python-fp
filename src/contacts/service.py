@@ -12,6 +12,7 @@ from exceptions import (
     RecordNotFound,
 )
 from output import (
+    default_contacts_table_fields,
     display_birthdays_table,
     display_contacts_table,
     output_info,
@@ -174,8 +175,26 @@ class PhoneBookService:
     #     output_info(f"Contact {name}'s field '{field}' has been removed.")
 
     @error_handler
-    def show_all_contacts(self):
-        display_contacts_table(self.book.data.values())
+    def show_all_contacts(self, args: list[str] = []) -> None:
+        if args:
+            default_fields = list(default_contacts_table_fields.keys())
+            final_collumns = ["Name"]
+            unknown_fields = ""
+            for arg in args:
+                if (
+                    arg.capitalize() in default_fields
+                    and arg.capitalize() not in final_collumns
+                ):
+                    final_collumns.append(arg.capitalize())
+                else:
+                    unknown_fields += f"{arg.capitalize()}, "
+            if unknown_fields:
+                output_info(
+                    f"There are no {unknown_fields[:-2]} among ContactsBook fields!"
+                )
+            display_contacts_table(self.book.data.values(), final_collumns)
+        else:
+            display_contacts_table(self.book.data.values())
 
     @error_handler
     def show_next_n_days_birthdays(self, args: list):
