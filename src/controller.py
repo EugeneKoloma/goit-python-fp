@@ -4,6 +4,7 @@ from prompt_toolkit.completion import Completer, Completion
 
 from contacts import cntcts_controller
 from context import data_cxt_mngr
+from notes import notes_controller
 from output import output_warning
 from output.help_ import show_help_panels
 
@@ -18,13 +19,14 @@ COMMAND_TREE = {
         "add-birthday",
         "show-birthday",
         "remove",
+        "remove contact",
         "delete",
         "undo",
         "find",
     ],
-    "notes": ["add", "search", "tag", "delete", "edit"],
+    "notes": ["create", "edit", "add", "remove", "find", "all"],
     "help": [],
-}
+
 
 
 class CommandCompleter(Completer):
@@ -50,6 +52,7 @@ def bootstrap():
     print(f"{Fore.BLUE}**** Welcome to the assistant bot! ****{Fore.RESET}")
     with data_cxt_mngr() as (book, notes):
         contacts_controller = cntcts_controller(book)
+        nts_controller = notes_controller(notes)
 
         completer = CommandCompleter()
 
@@ -79,9 +82,10 @@ def bootstrap():
                         else:
                             contacts_controller("all")
                     case "notes":
-                        print(
-                            f"{Fore.BLUE}************** Notes **************{Fore.RESET}"
-                        )
+                        if args:
+                            nts_controller(*args)
+                        else:
+                            nts_controller("all")
                     case "help":
                         show_help_panels()
                     case _:

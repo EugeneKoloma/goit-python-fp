@@ -67,7 +67,7 @@ class TagsValidator(Validator):
         if document.text:
             tags = [tag.strip() for tag in document.text.split(",")]
             for tag in tags:
-                if not tag.startswith("#") or not tag[1:].isalnum():
+                if not tag[1:].isalnum():
                     raise ValidationError(
                         message="Each tag must contain only letters or digits (e.g., #Work, #Family)."
                     )

@@ -1,3 +1,5 @@
+from collections import UserDict
+
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.validation import Validator
@@ -10,6 +12,61 @@ from contacts.validators import (
     TagsValidator,
 )
 from output import output_error
+
+note_field_value_completers = {
+    "title": WordCompleter([], ignore_case=True),
+    "context": WordCompleter([], ignore_case=True),
+    "tags": WordCompleter([], ignore_case=True),
+}
+
+
+def get_note_supported_fields():
+    return list(note_field_value_completers.keys())
+
+
+def get_new_note_details():
+    title = ask_field("Title")
+    context = ask_field("Context")
+    tags_input = ask_field(
+        "Tags (optional, comma-separated)", validator=TagsValidator(), required=False
+    )
+
+    tags = [t.strip() for t in tags_input.split(",")] if tags_input else []
+
+    return {
+        "title": title,
+        "context": context,
+        "tags": tags,
+    }
+
+
+def edit_note_prompt(notes: UserDict):
+    fields = list(notes.data.keys())
+    name_completer = WordCompleter(fields, ignore_case=True)
+    id = prompt("Which note do you want to edit [id]? ", completer=name_completer)
+
+    field_options = ["title", "context", "tags"]
+    field_completer = WordCompleter(field_options, ignore_case=True)
+    field = prompt("Which field do you want to edit? ", completer=field_completer)
+
+    record = notes.data[id]
+    if not record:
+        print(f"Note with '{id}' not found.")
+        return None, None, None
+
+    current_value = getattr(record, field, None)
+    if callable(current_value):
+        current_value = current_value()
+
+    print(f"Current value for {field}: {current_value}")
+
+    new_value = prompt("New value: ", validator=get_field_validator(field))
+    return id, field, new_value.strip()
+
+
+def is_valid_note_field(field: str) -> bool:
+    return field in note_field_value_completers
+
 
 field_value_completers = {
     "phone": WordCompleter(
@@ -172,3 +229,81 @@ def ask_field(label, validator=None, required=True, completer=None):
         if not value and not required:
             return ""
         return value
+
+
+def prompt_remove_details(book):
+    """
+    Interactively prompts the user for contact deletion details.
+
+    This function is used when the `contacts remove` command is called without arguments.
+    It guides the user through selecting a contact, choosing a field to remove,
+    and picking a specific value from that field (if needed).
+
+    Args:
+        book (ContactsBook): The address book instance to operate on.
+
+    Returns:
+        tuple[str, str, str | None]:
+            A 3-tuple of (name, field, value) in the following format:
+                - name (str): Contact name
+                - field (str): One of "phone", "email", "tag", or "contact"
+                - value (str | None): Value to remove, or None if entire contact should be deleted
+            If the operation is cancelled or invalid, returns (None, None, None).
+    """
+
+    from contacts.service import PhoneBookService
+    from output.rich_table import display_contacts_table
+
+    name = prompt("Which contact do you want to modify? ")
+    record = book.find(name)
+    book_service = PhoneBookService(book)
+    results = book_service.find_contacts(name)
+    display_contacts_table(results)
+
+    if not record:
+        output_error(f"Contact '{name}' not found.")
+        return None, None, None
+
+    field = prompt("What do you want to remove? (phone, email, tag, contact): ").lower()
+
+    if field == "contact":
+        confirm = (
+            prompt(f"Are you sure you want to delete '{name}'? (yes/no): ")
+            .strip()
+            .lower()
+        )
+        if confirm == "yes":
+            return "contact", None, name
+        else:
+            print("Cancelled.")
+            return None, None, None
+
+    values = getattr(record, f"{field}s", [])  # phones, emails, tags
+    if not values:
+        print(f"No {field}s found for {name}.")
+        return None, None, None
+
+    if len(values) == 1:
+        value = str(values[0])
+        print(f"Removing {field} '{value}' from {name}...")
+        return name, field, value
+
+    print(f"{field.capitalize()}s for {name}:")
+    for idx, val in enumerate(values, 1):
+        print(f"{idx}. {val}")
+
+    raw_input = prompt(f"Which {field} to remove? (number or exact value): ").strip()
+
+    # Handle index selection
+    if raw_input.isdigit():
+        index = int(raw_input)
+        if 1 <= index <= len(values):
+            value = str(values[index - 1])
+            print(f"Removing {field} '{value}' from {name}...")
+            return name, field, value
+        else:
+            print(f"Invalid number. Please enter a number from 1 to {len(values)}.")
+            return None, None, None
+
+    # Exact value fallback
+    return name, field, raw_input

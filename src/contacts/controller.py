@@ -6,6 +6,8 @@ from common.input_prompts import (
     get_supported_fields,
     is_valid_field,
     prompt_for_field,
+    prompt_missing_args,
+    prompt_remove_details,
 )
 from output import output_error, output_info, output_warning
 
@@ -14,13 +16,13 @@ from .service import PhoneBookService
 from .undo import load_undo_state
 
 
-def handle_undo(self):
+def handle_undo(book: ContactsBook):
     restored_book = load_undo_state()
     if not restored_book:
         output_error("No undo available.")
         return
-    self.book = restored_book
-    self.book.save_to_disk()  # Overwrite .bin or .json
+    book = restored_book
+    book.save_to_disk()  # Overwrite .bin or .json
     output_info("Last operation undone.")
 
 
@@ -35,7 +37,6 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
         match action:
             case "add":
                 if not args:
-                    print(f"{Fore.LIGHTBLUE_EX}Adding contact...{Fore.RESET}")
                     data = get_new_contact_details(book)
                     book_service.add_contact_from_dict(data)
 
@@ -96,17 +97,57 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                 print("Delete!")  # Put real delete function here
 
             case "remove":
-                book_service.remove_contact_field(*args)
+                if not args:
+                    name, field, value = prompt_remove_details(book)
+
+                    if not field:
+                        return
+
+                    if field == "contact":
+                        success = book_service.remove_contact(name)
+                    else:
+                        success = book_service.remove_contact_field(name, field, value)
+
+                    if success:
+                        print(
+                            f"{Fore.GREEN}{field.capitalize()} removed successfully from {name}.{Fore.RESET}"
+                        )
+                    else:
+                        print(
+                            f"{Fore.RED}Failed to remove {field} from {name}.{Fore.RESET}"
+                        )
+                    return
+
+                if args[0] == "contact" and len(args) == 2:
+                    _, name = args
+                    success = book_service.remove_contact(name)
+                    if success:
+                        output_info(f"Contact '{name}' has been removed.")
+                    else:
+                        output_error(f"Contact '{name}' not found.")
+                elif len(args) == 3:
+                    name, field, value = args
+                    success = book_service.remove_contact_field(name, field, value)
+                    if success:
+                        output_info(
+                            f"{field.capitalize()} '{value}' removed from {name}."
+                        )
+                    else:
+                        output_warning(
+                            "Nothing was removed. Check if the value and name are correct."
+                        )
+                else:
+                    output_warning(
+                        "Nothing was removed. Check if the value and name are correct."
+                    )
 
             case "phone":
                 book_service.show_contacts_phones(args)
 
             case "all":
-                book_service.show_all_contacts()
+                book_service.show_all_contacts(args)
 
             case "add-birthday":
-                from common.input_prompts import prompt_missing_args
-
                 provided = {}
                 if len(args) > 0:
                     provided["name"] = args[0]
