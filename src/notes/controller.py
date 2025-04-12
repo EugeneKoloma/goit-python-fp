@@ -6,15 +6,14 @@ from common.input_prompts import (
     # get_supported_note_fields,
     is_valid_note_field,
 )
-from output import output_error
+from output import display_notes_table, output_error
 
 from .Notes import Notes
-
-# from .service import NotesService
+from .service import NotesBookService
 
 
 def controller(notes: Notes):
-    # notes_service = NotesService(book)
+    notes_service = NotesBookService(notes)
 
     def commands(*args):
         if not args:
@@ -25,8 +24,7 @@ def controller(notes: Notes):
             case "create":
                 if not args:
                     data = get_new_note_details()
-                    print(f"Creating note with data: {data}")
-                    # notes_service.add_note(data)
+                    notes_service.add_note_to_notes_book(data)
 
             case "edit":
                 if not args:
@@ -79,8 +77,11 @@ def controller(notes: Notes):
             #         output_warning("Nothing to undo yet.")
 
             case "all":
-                notes_list = [str(note) for note in notes.data.values()]
-                print(f"{notes_list}")
+                # notes_service.show_all_notes()
+                if notes.data:
+                    display_notes_table(notes.data.values())
+                else:
+                    print(f"{Fore.LIGHTRED_EX}There are no any note yet!{Fore.RESET}")
 
             case _:
                 output_error(f"Unknown notes command: {action}")

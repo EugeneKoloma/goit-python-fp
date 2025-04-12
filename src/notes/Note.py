@@ -15,6 +15,15 @@ class Note:
         now = dtdt.now()
         self.created_at: Date = Date(now)
         self.updated_at: Date = Date(now)
+        self.__id: int = id
+
+    @property
+    def id(self) -> int:
+        return self.__id
+
+    @id.setter
+    def id(self, id: int):
+        self.__id = id
 
     def change_title(self, new_title: str):
         self.title._value = new_title

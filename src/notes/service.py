@@ -1,17 +1,15 @@
+from common import Tag
 from decorators import error_handler
 from exceptions import NoteNotFoundError
-
 from output import (
-    output_info,
-    output_warning,
-    output_error,
     notes_output,
+    output_error,
+    output_info,
 )
 
-from common import Tag
-from Note import Note
-from Notes import Notes
-from NotesFields import*
+from .Note import Note
+from .Notes import Notes
+from .NotesFields import Context, Title
 
 
 class NotesBookService:
@@ -26,35 +24,35 @@ class NotesBookService:
     def notes_book(self, notes_book: Notes):
         self.notes_book = notes_book
 
-################################# ADD NOTES SERVICE #################################
+    ################################# ADD NOTES SERVICE #################################
 
     @error_handler
-    def add_note_to_notes_book(self, args: dict) -> None:       
+    def add_note_to_notes_book(self, args: dict) -> None:
         # Create a new Note-objext only if context exists
         if args:
-            title = args.get("Title", "Without title") # -> str
-            context = args.get("Context", None) # -> str
-            tags = args.get("Tags", []) # -> list | str
+            title = args.get("title", "Without title")  # -> str
+            context = args.get("context", None)  # -> str
+            tags = args.get("tags", [])  # -> list | str
             if isinstance(tags, str):
                 tags = tags.lower().strip(", #").split()
 
             if context:
-                new_note = Note()  
+                new_note = Note()
                 new_note.context = Context(context)
                 new_note.title = Title(title)
-                new_note.tags = [Tag(tag) for tag in tags]       
-                self.notes_book.add_note(new_note)            
+                new_note.tags = [Tag(tag) for tag in tags]
+                self.notes_book.add_note(new_note)
                 output_info(
-                        f"Note with <<id{list(self.notes_book.data.keys())[-1]}>> and title <<{new_note.title.value}>> has been added."
-                    )
+                    f"Note with <<id{new_note.id}>> and title <<{new_note.title.value}>> has been added."
+                )
             else:
                 output_error(
-                        f"You haven't entered any context for the note (is necessary). Nothing was added!."
-                    )
+                    "You haven't entered any context for the note (is necessary). Nothing was added!."
+                )
 
-################################# FIND/SHOW NOTES SERVICES #################################
+    ################################# FIND/SHOW NOTES SERVICES #################################
 
-    @error_handler  
+    @error_handler
     def find_note_by_id(self, args: list[str]) -> dict | None:
         if args:
             # if entered with "id"- preffix
@@ -62,18 +60,18 @@ class NotesBookService:
             if self.notes_book.find_notes_by_id(query):
                 notes_output(self.notes_book.find_notes_by_id(query))
                 return self.notes_book.find_notes_by_id(query)
-            raise NoteNotFoundError  
+            raise NoteNotFoundError
 
-    @error_handler  
+    @error_handler
     def find_notes_by_title(self, args: list[str]) -> dict | None:
         query = " ".join(args)
-        if query:   
+        if query:
             if self.notes_book.find_notes_by_title(query):
                 notes_output(self.notes_book.find_notes_by_title(query))
                 return self.notes_book.find_notes_by_title(query)
-            raise NoteNotFoundError  
+            raise NoteNotFoundError
 
-    @error_handler 
+    @error_handler
     def find_notes_by_tags(self, args: list[str]) -> dict | None:
         if args:
             result = {}
@@ -82,37 +80,35 @@ class NotesBookService:
                     result.update(self.notes_book.find_notes_by_tag(query))
                 notes_output(result)
                 return result
-            raise NoteNotFoundError 
-        
-    @error_handler 
+            raise NoteNotFoundError
+
+    @error_handler
     def find_notes_by_context(self, args: list[str]) -> dict | None:
         query = " ".join(args)
-        if query:   
+        if query:
             if self.notes_book.find_notes_by_query(query):
                 notes_output(self.notes_book.find_notes_by_query(query))
-                return self.notes_book.find_notes_by_query(query)  
-            raise NoteNotFoundError         
-   
+                return self.notes_book.find_notes_by_query(query)
+            raise NoteNotFoundError
+
     @error_handler
     def show_all_notes(self) -> None:
         notes_output(self.notes_book.data)
 
-################################# UPDATE NOTES SERVICE #################################
+    ################################# UPDATE NOTES SERVICE #################################
 
-    @error_handler  
+    @error_handler
     def update_note_by_id(self, args: dict):
         if args:
-            note_id = args.get("ID", None) # -> str
-            new_title = args.get("Title", None) # -> str
-            new_context = args.get("Context", None) # -> str
-            pair_of_tags = args.get("Tags", []) # -> list
+            note_id = args.get("ID", None)  # -> str
+            new_title = args.get("Title", None)  # -> str
+            new_context = args.get("Context", None)  # -> str
+            pair_of_tags = args.get("Tags", [])  # -> list
             note = self.notes_book.get(note_id, None)
             if note:
                 # If we change only 1 field by inline command will output the warning about empty new value
                 if not (new_title or new_context or pair_of_tags) and len(args) <= 2:
-                    output_info(
-                            "Nothing changed, because nothing was entered!"
-                        )
+                    output_info("Nothing changed, because nothing was entered!")
                 else:
                     if new_title:
                         note.change_title(new_title)
@@ -128,27 +124,27 @@ class NotesBookService:
                                 + "If you want to delete tag, use another command!"
                             )
             else:
-                raise NoteNotFoundError                                   
-        
-################################# OTHER NOTES SERVICE #################################
+                raise NoteNotFoundError
 
-    @error_handler  
+    ################################# OTHER NOTES SERVICE #################################
+
+    @error_handler
     def delete_note_by_id(self, args: list[str]):
         if args:
             note_id, *_ = args
             self.notes_book.delete_note_by_id(note_id)
 
-    @error_handler  
+    @error_handler
     def delete_tags_by_note_id(self, args: list[str]):
         if args:
-            note_id, tags = args 
+            note_id, tags = args
             note_id = note_id.replace("id", "").strip(", ")
             note = self.notes_book.get(note_id, None)
             if note:
                 for tag in tags:
                     note.delete_tag(tag)
 
-    @error_handler  
+    @error_handler
     def sort_note_by_date(self, args: list[str]) -> dict | None:
         if args:
             choice, *_ = args
@@ -156,22 +152,32 @@ class NotesBookService:
             for id, note in self.notes_book.items():
                 updated_result.update({note.updated_at.date: id})
             updated_result_asc = dict(sorted(updated_result.items()))
-            updated_result_asc = dict([(value, self.notes_book.data[value]) for value in updated_result_asc.values()])
+            updated_result_asc = dict(
+                [
+                    (value, self.notes_book.data[value])
+                    for value in updated_result_asc.values()
+                ]
+            )
             updated_result_desc = dict(sorted(updated_result.items(), reverse=True))
-            updated_result_desc = dict([(value, self.notes_book.data[value]) for value in updated_result_desc.values()])
+            updated_result_desc = dict(
+                [
+                    (value, self.notes_book.data[value])
+                    for value in updated_result_desc.values()
+                ]
+            )
             if choice == "created asc":
-                notes_output(dict(self.notes_book.items())) 
+                notes_output(dict(self.notes_book.items()))
                 return dict(self.notes_book.items())
             elif choice == "created desc":
-                notes_output(dict(sorted((self.notes_book.items()), reverse=True))  )
-                return dict(sorted((self.notes_book.items()), reverse=True))        
+                notes_output(dict(sorted((self.notes_book.items()), reverse=True)))
+                return dict(sorted((self.notes_book.items()), reverse=True))
             elif choice == "updated asc":
                 notes_output(updated_result_asc)
                 return updated_result_asc
-            elif choice == "updated desc":   
-                notes_output(updated_result_desc)            
+            elif choice == "updated desc":
+                notes_output(updated_result_desc)
                 return updated_result_desc
 
 
 if __name__ == "__main__":
-   pass
+    pass

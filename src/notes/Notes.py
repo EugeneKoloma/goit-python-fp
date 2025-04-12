@@ -31,14 +31,14 @@ from .Note import Note
 
 
 class Notes(UserDict):
-    note_id = 0
-
     def __init__(self):
+        self.__notes_counter = 0
         self.data: Dict[str, Note] = {}
 
     def add_note(self, note: Note):
-        Notes.note_id += 1
-        self.data[str(Notes.note_id)] = note
+        self.__notes_counter += 1
+        note.id = self.__notes_counter
+        self.data[str(self.__notes_counter)] = note
 
     def find_notes_by_id(self, id: str) -> dict:
         return {id: self.data[id]}
@@ -58,11 +58,13 @@ class Notes(UserDict):
             ).lower()
         ]
         return dict(result)
-    
+
     def find_notes_by_title(self, query: str) -> dict:
         query = query.lower()
         result = [
-            (id, note) for id, note in self.data.items() if query in note.title._value.lower()
+            (id, note)
+            for id, note in self.data.items()
+            if query in note.title._value.lower()
         ]
         return dict(result)
 
@@ -87,3 +89,13 @@ class Notes(UserDict):
             if self.data.items()
             else f"{Fore.LIGHTRED_EX}There are no any note yet!{Fore.RESET}"
         )
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        if "__notes_counter" not in state:
+            self.__notes_counter = 0
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["__notes_counter"] = self.__notes_counter
+        return state
