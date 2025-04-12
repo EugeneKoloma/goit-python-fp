@@ -2,7 +2,7 @@ from functools import wraps
 
 from colorama import Fore, Style
 
-from exceptions import FieldNotFound, WrongPhoneNumber
+from exceptions import FieldNotFound, WrongPhoneNumber, NoteNotFoundError
 
 
 def error_handler(func):
@@ -23,6 +23,8 @@ def error_handler(func):
             print(error)
         except FieldNotFound as error:
             print(error)
+        except NoteNotFoundError:
+            pass
         except Exception as error:
             print("Unexpected error:", error)
 

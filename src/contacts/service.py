@@ -250,8 +250,8 @@ class PhoneBookService:
         )
 
     @error_handler
-    def search_contacts(book, query: str):
-        return elastic_search(book.data.values(), query)
+    def search_contacts(self, query: str):
+        return elastic_search(self.book.data.values(), query)
 
     @error_handler
     def contact_exists(self, name: str) -> bool:
