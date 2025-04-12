@@ -9,9 +9,15 @@ from rich.table import Table
 def show_help_panels():
     console = Console()
 
-    table_width = 91
-    command_col_width = 46
-    description_col_width = 45
+    term_width = console.size.width
+
+    # table_width = 91
+    # command_col_width = 46
+    # description_col_width = 45
+
+    table_width = term_width // 2 - 1
+    command_col_width = table_width // 2
+    description_col_width = table_width // 2
 
     def create_table(title, rows):
         table = Table(
@@ -26,7 +32,7 @@ def show_help_panels():
         table.add_column(
             "Command",
             style="bold green on black",
-            no_wrap=True,
+            no_wrap=False,
             width=command_col_width,
         )
         table.add_column(
@@ -84,7 +90,7 @@ def show_help_panels():
     header_panel = Panel(
         Align.center("📘 [b]AVAILABLE COMMANDS[/b] 📘", vertical="middle"),
         style="green on black",
-        padding=(0, 1),
+        padding=(0, 0),
         width=table_width * 2 + 15,
         box=box.DOUBLE,
     )
@@ -168,7 +174,7 @@ def show_help_panels():
 
     choice_panel = Panel(
         Align.center(
-            "[bold green]💊 Which pill will you choose? 🔴[/bold green]",
+            "[bold green]💊 Which pill will you choose? 🔴 | 🔵[/bold green]",
             vertical="middle",
         ),
         border_style="green",
