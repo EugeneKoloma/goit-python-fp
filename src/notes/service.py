@@ -126,6 +126,16 @@ class NotesBookService:
             else:
                 raise NoteNotFoundError
 
+    @error_handler
+    def add_tags_to_note_by_id(self, note_id: str, tags: list[str]):
+        note = self.notes_book.get(note_id, None)
+        if note:
+            for tag in tags:
+                note.add_tag(tag)
+            output_info(f"Tags {tags} have been added to note with ID {note_id}.")
+        else:
+            raise NoteNotFoundError
+
     ################################# OTHER NOTES SERVICE #################################
 
     @error_handler

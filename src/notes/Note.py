@@ -15,7 +15,7 @@ class Note:
         now = dtdt.now()
         self.created_at: Date = Date(now)
         self.updated_at: Date = Date(now)
-        self.__id: int = id
+        self.__id: int = None
 
     @property
     def id(self) -> int:
