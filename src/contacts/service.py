@@ -48,12 +48,6 @@ class PhoneBookService:
         birthday = data.get("birthday")
         tags = data.get("tags")
 
-        # Moving validation to separate validators.py level
-        # if self.book.is_phone_owned(phone):
-        #     raise PhoneAlreadyOwned(
-        #         f"This number {Fore.YELLOW}{phone}{Fore.RESET} already owned."
-        #     )
-
         new_record = Record(name)
         new_record.add_phone(phone)
 
@@ -68,7 +62,7 @@ class PhoneBookService:
                 new_record.add_tag(tag)
 
         self.book.add_record(new_record)
-        output_info(f"Contact {name} has been added successfully.")
+        # output_info(f"Contact {name} has been added successfully.")
 
     @error_handler
     def edit_contact_field(
@@ -93,11 +87,6 @@ class PhoneBookService:
                 else:
                     record.add_phone(new_value)
             case "email":
-                # Moving validation to separate validators.py level
-                # if self.book.is_email_owned(new_value):
-                #     raise EmailAlreadyOwned(
-                #         f"This email {Fore.YELLOW}{new_value}{Fore.RESET} already owned."
-                #     )
                 if not old_value:
                     record.add_email(new_value)
                     return
@@ -128,51 +117,7 @@ class PhoneBookService:
                     f"Field {Fore.YELLOW}{field}{Fore.RESET} not recognized."
                 )
 
-        output_info(f"Contact {name}'s field '{field}' has been updated.")
-
-    # @error_handler
-    # def remove_contact_field(self, name: str | None, field: str | None, value: str | None):
-    #     save_undo_state(self.book)
-
-    #     record = self.book.find(name)
-    #     if record is None:
-    #         raise RecordNotFound(f"Contact {Fore.GREEN}{name}{Fore.RESET} not found.")
-
-    #     match field:
-    #         case "phone":
-    #             phone = record.find_phone(value)
-    #             if phone:
-    #                 record.phones.remove(phone)
-    #             else:
-    #                 raise FieldNotFound(f"Phone {value} not found.")
-    #         case "email":
-    #             email = record.find_email(value)
-    #             if email:
-    #                 record.emails.remove(email)
-    #             else:
-    #                 raise FieldNotFound(f"Email {value} not found.")
-    #         case "address":
-    #             if record.address:
-    #                 record.address = None
-    #             else:
-    #                 raise FieldNotFound(f"Address {value} not found.")
-    #         case "birthday":
-    #             if record.birthday:
-    #                 record.birthday = None
-    #             else:
-    #                 raise FieldNotFound(f"Birthday {value} not found.")
-    #         case "tag":
-    #             tag = record.find_tag(value)
-    #             if tag:
-    #                 record.tags.remove(tag)
-    #             else:
-    #                 raise FieldNotFound(f"Tag {value} not found.")
-    #         case _:
-    #             raise FieldNotFound(
-    #                 f"Field {Fore.YELLOW}{field}{Fore.RESET} not recognized."
-    #             )
-
-    #     output_info(f"Contact {name}'s field '{field}' has been removed.")
+        # output_info(f"Contact {name}'s field '{field}' has been updated.")
 
     @error_handler
     def show_all_contacts(self, args: list[str] = []) -> None:
