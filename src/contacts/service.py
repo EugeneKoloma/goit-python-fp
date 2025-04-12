@@ -280,39 +280,67 @@ class PhoneBookService:
         return [record.name for record in self.book.data.values()]
 
     @error_handler
-    def find_contacts(self, query: str, mode="smart") -> list:
+    def find_contacts(self, query: str = "", mode="smart", **filters) -> list:
         results = []
 
         for record in self.book.data.values():
-            # Build one long string to search in
-            parts = [
-                str(record.name),
-                *[str(p) for p in getattr(record, "phones", [])],
-                *[str(e) for e in getattr(record, "emails", [])],
-                str(getattr(record, "birthday", "")) or "",
-                str(getattr(record, "address", "")) or "",
-                " ".join(str(t) for t in getattr(record, "tags", [])),
-            ]
+            # 1. Apply field-specific filters first
+            if "name" in filters:
+                if filters["name"].lower() not in str(record.name).lower():
+                    continue
 
-            full_text = " ".join(parts).lower()
+            if "email" in filters:
+                if not any(
+                    filters["email"].lower() in str(e).lower()
+                    for e in getattr(record, "emails", [])
+                ):
+                    continue
 
-            if mode == "regex":
-                try:
-                    if re.search(query, full_text, re.IGNORECASE):
-                        results.append(record)
-                except re.error:
-                    pass  # Invalid regex
-            elif mode == "fuzzy":
-                if fuzz.partial_ratio(query.lower(), full_text) > 75:
-                    results.append(record)
-            else:  # Smart = try regex first
-                try:
-                    if re.search(query, full_text, re.IGNORECASE):
-                        results.append(record)
+            if "tag" in filters:
+                if not any(
+                    filters["tag"].lower() in str(t).lower()
+                    for t in getattr(record, "tags", [])
+                ):
+                    continue
+
+            if "phone" in filters:
+                if not any(
+                    filters["phone"].lower() in str(p).lower() for p in record.phones
+                ):
+                    continue
+
+            # 2. Fallback: apply fuzzy or regex search if query is provided
+            if query:
+                parts = [
+                    str(record.name),
+                    *[str(p) for p in getattr(record, "phones", [])],
+                    *[str(e) for e in getattr(record, "emails", [])],
+                    str(getattr(record, "birthday", "")) or "",
+                    str(getattr(record, "address", "")) or "",
+                    " ".join(str(t) for t in getattr(record, "tags", [])),
+                ]
+                full_text = " ".join(parts).lower()
+
+                if mode == "regex":
+                    try:
+                        if not re.search(query, full_text, re.IGNORECASE):
+                            continue
+                    except re.error:
+                        continue  # Skip if regex error
+
+                elif mode == "fuzzy":
+                    if fuzz.partial_ratio(query.lower(), full_text) <= 75:
                         continue
-                except re.error:
-                    pass
-                if fuzz.partial_ratio(query.lower(), full_text) > 75:
-                    results.append(record)
+
+                else:  # smart
+                    try:
+                        if not re.search(query, full_text, re.IGNORECASE):
+                            if fuzz.partial_ratio(query.lower(), full_text) <= 75:
+                                continue
+                    except re.error:
+                        if fuzz.partial_ratio(query.lower(), full_text) <= 75:
+                            continue
+
+            results.append(record)
 
         return results
