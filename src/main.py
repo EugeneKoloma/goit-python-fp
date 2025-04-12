@@ -1,4 +1,4 @@
-from contacts import bootstrap
+from controller import bootstrap
 
 
 def main():

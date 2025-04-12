@@ -49,7 +49,11 @@ class Notes(UserDict):
             for id, note in self.data.items()
             if query
             in " ".join(
-                [note.title._value, note.context._value, " ".join([tag._value for tag in note.tags])]
+                [
+                    note.title._value,
+                    note.context._value,
+                    " ".join([tag._value for tag in note.tags]),
+                ]
             ).lower()
         ]
         return dict(result)
@@ -64,7 +68,9 @@ class Notes(UserDict):
     def find_notes_by_tag(self, tag: str) -> dict:
         tag = tag.lower()
         result = [
-            (id, note) for id, note in self.data.items() if tag in " ".join([tag._value for tag in note.tags]).lower()
+            (id, note)
+            for id, note in self.data.items()
+            if tag in " ".join([tag._value for tag in note.tags]).lower()
         ]
         return dict(result)
 

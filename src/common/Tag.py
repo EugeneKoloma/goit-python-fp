@@ -20,6 +20,7 @@ Usage example:
 """
 
 
+
 class Tag:
     def __init__(self, value: str):
         self._value = value.lower().strip()
