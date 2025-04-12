@@ -53,6 +53,7 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                     # Full interactive mode
                     data = get_new_contact_details(book)
                     book_service.add_contact_from_dict(data)
+                    output_info(f"Created new contact '{data['name'].capitalize()}'")
 
                 elif len(args) == 1:
                     # One field provided: `contacts add phone`
@@ -214,11 +215,11 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                     else:
                         output_error(f"Contact '{name}' not found.")
                 elif len(args) == 3:
-                    name, field, value = args
+                    field, value, name = args
                     success = book_service.remove_contact_field(name, field, value)
                     if success:
                         output_info(
-                            f"{field.capitalize()} '{value}' removed from {name}."
+                            f"{field.capitalize()} '{value}' removed from {name.capitalize()}."
                         )
                     else:
                         output_warning(
@@ -234,16 +235,6 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
 
             case "all":
                 book_service.show_all_contacts(args)
-
-            # case "add-birthday":
-            #     provided = {}
-            #     if len(args) > 0:
-            #         provided["name"] = args[0]
-            #     if len(args) > 1:
-            #         provided["birthday"] = args[1]
-
-            #     filled = prompt_missing_args(["name", "birthday"], provided)
-            #     book_service.set_birthday([filled["name"], filled["birthday"]])
 
             case "show-birthday":
                 book_service.get_birthday(args)

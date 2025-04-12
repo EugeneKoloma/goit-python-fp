@@ -132,8 +132,10 @@ def display_birthdays_table(birthdays, days_to):
     """
     table = Table(
         title=f"Birthdays in the Next {days_to} Days",
-        show_lines=True,
-        header_style="bold magenta",
+        show_lines=False,
+        header_style="bold white",
+        row_styles=["on black", "on grey11"],
+        box=box.ROUNDED,
     )
     table.add_column("Name", style="cyan", justify="center")
     table.add_column("Date", style="green", justify="center")
