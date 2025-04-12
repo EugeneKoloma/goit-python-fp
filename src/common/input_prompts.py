@@ -1,3 +1,5 @@
+from collections import UserDict
+
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.validation import Validator
@@ -10,6 +12,61 @@ from contacts.validators import (
     TagsValidator,
 )
 from output import output_error
+
+note_field_value_completers = {
+    "title": WordCompleter([], ignore_case=True),
+    "context": WordCompleter([], ignore_case=True),
+    "tags": WordCompleter([], ignore_case=True),
+}
+
+
+def get_note_supported_fields():
+    return list(note_field_value_completers.keys())
+
+
+def get_new_note_details():
+    title = ask_field("Title")
+    context = ask_field("Context")
+    tags_input = ask_field(
+        "Tags (optional, comma-separated)", validator=TagsValidator(), required=False
+    )
+
+    tags = [t.strip() for t in tags_input.split(",")] if tags_input else []
+
+    return {
+        "title": title,
+        "context": context,
+        "tags": tags,
+    }
+
+
+def edit_note_prompt(notes: UserDict):
+    fields = list(notes.data.keys())
+    name_completer = WordCompleter(fields, ignore_case=True)
+    id = prompt("Which note do you want to edit [id]? ", completer=name_completer)
+
+    field_options = ["title", "context", "tags"]
+    field_completer = WordCompleter(field_options, ignore_case=True)
+    field = prompt("Which field do you want to edit? ", completer=field_completer)
+
+    record = notes.data[id]
+    if not record:
+        print(f"Note with '{id}' not found.")
+        return None, None, None
+
+    current_value = getattr(record, field, None)
+    if callable(current_value):
+        current_value = current_value()
+
+    print(f"Current value for {field}: {current_value}")
+
+    new_value = prompt("New value: ", validator=get_field_validator(field))
+    return id, field, new_value.strip()
+
+
+def is_valid_note_field(field: str) -> bool:
+    return field in note_field_value_completers
+
 
 field_value_completers = {
     "phone": WordCompleter(

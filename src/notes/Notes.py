@@ -24,9 +24,10 @@ from collections import UserDict
 from typing import Dict
 
 from colorama import Fore
-from Note import Note
 
 from exceptions import NoteNotFoundError
+
+from .Note import Note
 
 
 class Notes(UserDict):

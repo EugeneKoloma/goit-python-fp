@@ -1,9 +1,10 @@
 from datetime import datetime as dtdt
 
 from colorama import Fore
-from NotesFields import Context, Date, Title
 
 from common import Tag
+
+from .NotesFields import Context, Date, Title
 
 
 class Note:
