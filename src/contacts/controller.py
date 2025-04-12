@@ -16,13 +16,13 @@ from .service import PhoneBookService
 from .undo import load_undo_state
 
 
-def handle_undo(self):
+def handle_undo(book: ContactsBook):
     restored_book = load_undo_state()
     if not restored_book:
         output_error("No undo available.")
         return
-    self.book = restored_book
-    self.book.save_to_disk()  # Overwrite .bin or .json
+    book = restored_book
+    book.save_to_disk()  # Overwrite .bin or .json
     output_info("Last operation undone.")
 
 
@@ -37,7 +37,6 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
         match action:
             case "add":
                 if not args:
-                    print(f"{Fore.LIGHTBLUE_EX}Adding contact...{Fore.RESET}")
                     data = get_new_contact_details(book)
                     book_service.add_contact_from_dict(data)
 
@@ -163,20 +162,37 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
 
             case "find":
                 if not args:
-                    print("Please provide a query to search.")
+                    print(
+                        "Usage: contacts find --name John | --email gmail.com | --tag #work"
+                    )
                     return
 
-                query = args[0]
-                mode = args[1] if len(args) > 1 else "smart"
-                results = book_service.find_contacts(query, mode=mode)
+                filters = {}
+                it = iter(args)
+                for arg in it:
+                    if arg.startswith("--"):
+                        field = arg[2:]
+                        if field not in ["name", "email", "tag", "phone"]:
+                            print(
+                                f"{Fore.RED}Unsupported filter: --{field}{Fore.RESET}"
+                            )
+                            return
+                        try:
+                            value = next(it)
+                        except StopIteration:
+                            print(f"{Fore.RED}Missing value for --{field}{Fore.RESET}")
+                            return
+                        filters[field] = value
+
+                results = book_service.find_contacts(**filters)
 
                 if results:
-                    from output.rich_table import display_contacts_table
+                    from output import display_contacts_table
 
                     display_contacts_table(results)
                 else:
                     print(
-                        f"{Fore.YELLOW}No contacts found matching: {query}{Fore.RESET}"
+                        f"{Fore.YELLOW}No contacts found matching: {filters}{Fore.RESET}"
                     )
 
             case "undo":

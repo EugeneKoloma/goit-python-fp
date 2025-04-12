@@ -24,28 +24,30 @@ from collections import UserDict
 from typing import Dict
 
 from colorama import Fore
-from Note import Note
 
 from exceptions import NoteNotFoundError
 
+from .Note import Note
+
 
 class Notes(UserDict):
-    note_id = 0
-
     def __init__(self):
+        self.__notes_counter = 0
         self.data: Dict[str, Note] = {}
 
     def add_note(self, note: Note):
-        self.data[str(Notes.note_id + 1)] = note
+        self.__notes_counter += 1
+        note.id = self.__notes_counter
+        self.data[str(self.__notes_counter)] = note
 
-    def find_notes_by_id(self, id: str) -> Note | None:
-        return self.data[id] if id in self.data.keys() else None
+    def find_notes_by_id(self, id: str) -> dict:
+        return {id: self.data[id]}
 
-    def find_notes_by_query(self, query: str) -> list[Note] | str:
+    def find_notes_by_query(self, query: str) -> dict:
         query = query.lower()
         result = [
-            note
-            for note in self.data.values()
+            (id, note)
+            for id, note in self.data.items()
             if query
             in " ".join(
                 [
@@ -55,20 +57,25 @@ class Notes(UserDict):
                 ]
             ).lower()
         ]
-        if not result:
-            raise NoteNotFoundError
-        return result
+        return dict(result)
 
-    def find_notes_by_tag(self, tag: str) -> list[Note] | str:
+    def find_notes_by_title(self, query: str) -> dict:
+        query = query.lower()
+        result = [
+            (id, note)
+            for id, note in self.data.items()
+            if query in note.title._value.lower()
+        ]
+        return dict(result)
+
+    def find_notes_by_tag(self, tag: str) -> dict:
         tag = tag.lower()
         result = [
-            note
-            for note in self.data.values()
+            (id, note)
+            for id, note in self.data.items()
             if tag in " ".join([tag._value for tag in note.tags]).lower()
         ]
-        if not result:
-            raise NoteNotFoundError
-        return result
+        return dict(result)
 
     def delete_note_by_id(self, id: str):
         if id in self.data.keys():
@@ -79,6 +86,16 @@ class Notes(UserDict):
     def __str__(self):
         return (
             f"{Fore.LIGHTBLUE_EX}{self.data}{Fore.RESET}"
-            if self.data
+            if self.data.items()
             else f"{Fore.LIGHTRED_EX}There are no any note yet!{Fore.RESET}"
         )
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        if "__notes_counter" not in state:
+            self.__notes_counter = 0
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["__notes_counter"] = self.__notes_counter
+        return state

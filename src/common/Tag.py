@@ -24,6 +24,10 @@ class Tag:
     def __init__(self, value: str):
         self._value = value.lower().strip()
 
+    @property
+    def tag(self):
+        return self.__str__
+
     def __str__(self):
         return self._value or ""
 
