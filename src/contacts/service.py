@@ -1,18 +1,20 @@
+import re
+
 from colorama import Fore
+from rapidfuzz import fuzz
 
 from contacts import Birthday, Email, Phone
 from decorators import error_handler
 from exceptions import (
-    EmailAlreadyOwned,
     FieldNotFound,
     InvalidDaysInput,
     PhoneAlreadyOwned,
     RecordNotFound,
 )
 from output import (
+    default_contacts_table_fields,
     display_birthdays_table,
     display_contacts_table,
-    default_contacts_table_fields,
     output_info,
     output_warning,
 )
@@ -20,6 +22,7 @@ from utils.search import elastic_search
 
 from .ContactsBook import ContactsBook
 from .Records import Record
+from .undo import save_undo_state
 
 
 class PhoneBookService:
@@ -36,6 +39,8 @@ class PhoneBookService:
 
     @error_handler
     def add_contact_from_dict(self, data: dict):
+        save_undo_state(self.book)
+
         name = data.get("name")
         phone = data.get("phone")
         email = data.get("email")
@@ -43,10 +48,11 @@ class PhoneBookService:
         birthday = data.get("birthday")
         tags = data.get("tags")
 
-        if self.book.is_phone_owned(phone):
-            raise PhoneAlreadyOwned(
-                f"This number {Fore.YELLOW}{phone}{Fore.RESET} already owned."
-            )
+        # Moving validation to separate validators.py level
+        # if self.book.is_phone_owned(phone):
+        #     raise PhoneAlreadyOwned(
+        #         f"This number {Fore.YELLOW}{phone}{Fore.RESET} already owned."
+        #     )
 
         new_record = Record(name)
         new_record.add_phone(phone)
@@ -68,6 +74,8 @@ class PhoneBookService:
     def edit_contact_field(
         self, name: str, field: str, new_value: str, old_value: str = ""
     ):
+        save_undo_state(self.book)
+
         record = self.book.find(name)
         if record is None:
             raise RecordNotFound(f"Contact {Fore.GREEN}{name}{Fore.RESET} not found.")
@@ -85,10 +93,11 @@ class PhoneBookService:
                 else:
                     record.add_phone(new_value)
             case "email":
-                if self.book.is_email_owned(new_value):
-                    raise EmailAlreadyOwned(
-                        f"This email {Fore.YELLOW}{new_value}{Fore.RESET} already owned."
-                    )
+                # Moving validation to separate validators.py level
+                # if self.book.is_email_owned(new_value):
+                #     raise EmailAlreadyOwned(
+                #         f"This email {Fore.YELLOW}{new_value}{Fore.RESET} already owned."
+                #     )
                 if not old_value:
                     record.add_email(new_value)
                     return
@@ -102,6 +111,7 @@ class PhoneBookService:
                 record.add_address(new_value)
             case "birthday":
                 record.add_birthday(new_value)
+
             case "tag":
                 if not old_value:
                     record.add_tag(new_value)
@@ -122,6 +132,8 @@ class PhoneBookService:
 
     @error_handler
     def remove_contact_field(self, name: str, field: str, value: str):
+        save_undo_state(self.book)
+
         record = self.book.find(name)
         if record is None:
             raise RecordNotFound(f"Contact {Fore.GREEN}{name}{Fore.RESET} not found.")
@@ -163,13 +175,16 @@ class PhoneBookService:
         output_info(f"Contact {name}'s field '{field}' has been removed.")
 
     @error_handler
-    def show_all_contacts(self, args: list[str] = []) -> None:        
-        if args:     
-            default_fields = list(default_contacts_table_fields.keys())     
+    def show_all_contacts(self, args: list[str] = []) -> None:
+        if args:
+            default_fields = list(default_contacts_table_fields.keys())
             final_collumns = ["Name"]
-            unknown_fields = ""        
+            unknown_fields = ""
             for arg in args:
-                if arg.capitalize() in default_fields and arg.capitalize() not in final_collumns:
+                if (
+                    arg.capitalize() in default_fields
+                    and arg.capitalize() not in final_collumns
+                ):
                     final_collumns.append(arg.capitalize())
                 else:
                     unknown_fields += f"{arg.capitalize()}, "
@@ -231,6 +246,8 @@ class PhoneBookService:
 
     @error_handler
     def change_contacts_phone(self, args) -> None:
+        save_undo_state(self.book)
+
         name, old_phone, new_phone = args
         record = self.book.find(name)
         if record is None:
@@ -242,8 +259,9 @@ class PhoneBookService:
                 f"Phone number {new_phone} not exist. You can add it using the 'add' command."
             )
 
-        if self.book.is_phone_owned(new_phone):
-            raise PhoneAlreadyOwned(f"This number {new_phone} already owned.")
+        # Moving validation to separate validators.py level
+        # if self.book.is_phone_owned(new_phone):
+        #     raise PhoneAlreadyOwned(f"This number {new_phone} already owned.")
 
         phone.value = new_phone
         output_info(
@@ -279,3 +297,69 @@ class PhoneBookService:
     @error_handler
     def get_all_contact_names(self) -> list[str]:
         return [record.name for record in self.book.data.values()]
+
+    @error_handler
+    def find_contacts(self, query: str = "", mode="smart", **filters) -> list:
+        results = []
+
+        for record in self.book.data.values():
+            # 1. Apply field-specific filters first
+            if "name" in filters:
+                if filters["name"].lower() not in str(record.name).lower():
+                    continue
+
+            if "email" in filters:
+                if not any(
+                    filters["email"].lower() in str(e).lower()
+                    for e in getattr(record, "emails", [])
+                ):
+                    continue
+
+            if "tag" in filters:
+                if not any(
+                    filters["tag"].lower() in str(t).lower()
+                    for t in getattr(record, "tags", [])
+                ):
+                    continue
+
+            if "phone" in filters:
+                if not any(
+                    filters["phone"].lower() in str(p).lower() for p in record.phones
+                ):
+                    continue
+
+            # 2. Fallback: apply fuzzy or regex search if query is provided
+            if query:
+                parts = [
+                    str(record.name),
+                    *[str(p) for p in getattr(record, "phones", [])],
+                    *[str(e) for e in getattr(record, "emails", [])],
+                    str(getattr(record, "birthday", "")) or "",
+                    str(getattr(record, "address", "")) or "",
+                    " ".join(str(t) for t in getattr(record, "tags", [])),
+                ]
+                full_text = " ".join(parts).lower()
+
+                if mode == "regex":
+                    try:
+                        if not re.search(query, full_text, re.IGNORECASE):
+                            continue
+                    except re.error:
+                        continue  # Skip if regex error
+
+                elif mode == "fuzzy":
+                    if fuzz.partial_ratio(query.lower(), full_text) <= 75:
+                        continue
+
+                else:  # smart
+                    try:
+                        if not re.search(query, full_text, re.IGNORECASE):
+                            if fuzz.partial_ratio(query.lower(), full_text) <= 75:
+                                continue
+                    except re.error:
+                        if fuzz.partial_ratio(query.lower(), full_text) <= 75:
+                            continue
+
+            results.append(record)
+
+        return results

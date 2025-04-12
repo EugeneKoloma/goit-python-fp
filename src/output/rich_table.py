@@ -1,3 +1,4 @@
+from rich import box
 from rich.console import Console
 from rich.table import Table
 
@@ -12,8 +13,48 @@ default_contacts_table_fields = {
     "Tags": "red",
 }
 
+
+def display_notes_table(records):
+    """
+    Takes a list of `Record` objects and prints them in a formatted table.
+    Each record is expected to have:
+      - title (record.title.value)
+      - context (record.context.value)
+      - updated_at (record.date.value)
+      - tags (record.tags)
+    """
+
+    # Change colors later
+    table = Table(
+        title="Notes",
+        show_lines=False,
+        box=box.ROUNDED,
+        header_style="bold white",
+        row_styles=["on #1a1a1a", "on #2a2a2a"],
+    )
+    table.add_column("Title", style="bold cyan")
+    table.add_column("Context", style="green", width=40)
+    table.add_column("Date", style="magenta")
+    table.add_column("Tags", style="red")
+
+    # Get Record attributes
+    for record in records:
+        title = str(record.title)
+
+        context = str(record.context) if record.context else "—"
+
+        date = str(record.updated_at) if record.updated_at else "—"
+
+        tags = getattr(record, "tags", [])
+        tags = ", ".join([str(tag) for tag in tags]) if tags else "—"
+
+        table.add_row(title.capitalize(), context, date, tags)
+
+    console.print(table)
+
+
 # To display contacts as rich table
-def display_contacts_table(records, user_fields: list =[]):
+def display_contacts_table(records, user_fields: list = []):
     """
     Takes a list of `Record` objects and prints them in a formatted table.
     Each record is expected to have:
@@ -57,7 +98,7 @@ def display_contacts_table(records, user_fields: list =[]):
         table.add_row(
             name.capitalize(), phones, birthday, emails, address, tags
         )  # <- Add email and address inside later and wrap like tags, the same way
-    
+
     if user_fields:
         # Make a list of indexes of fields, that are not in user's choice
         indexes = []
@@ -66,15 +107,16 @@ def display_contacts_table(records, user_fields: list =[]):
             if field not in user_fields:
                 indexes.append(index)
             index += 1
-            
+
         # Removing the fields, which a not in user's choice, by their index
         while indexes:
-            table.columns.pop(indexes[0]) 
+            table.columns.pop(indexes[0])
             for i in range(len(indexes)):
                 indexes[i] -= 1
             indexes.remove(indexes[0])
 
     console.print(table)
+
 
 # To display birthdays as rich table
 def display_birthdays_table(birthdays, days_to):
