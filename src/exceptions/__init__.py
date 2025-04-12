@@ -14,7 +14,7 @@ __all__ = [
     "RecordNotFound",
     "WrongDateFormat",
     "PhoneAlreadyOwned",
-    "NoteNotFoundError"
+    "NoteNotFoundError",
     "InvalidDaysInput",
     "WrongEmailValue",
     "TagNotFound",

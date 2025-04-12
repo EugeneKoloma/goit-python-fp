@@ -70,18 +70,20 @@ def output_error(message: str):
 
 
 def notes_output(notes: dict):        
-    console = Console()
     for id, note in notes.items():  
-        tags = "#" + " #".join([tag._value for tag in note.tags]) if note.tags else ""
+        tags = " ".join([str(tag) for tag in note.tags]) + "\n" if note.tags else ""
         panel = Panel(
-            note.context.value + f"\n[bold cyan]{tags}[/bold cyan]", 
+            f"{note.context.value}\n" 
+            + f"[bold cyan]{tags}[/bold cyan]"
+            + f"[yellow]     Created at | {note.created_at}\nLast updated at | {note.updated_at}[/yellow]", 
             title=f"[bold magenta]📝 ID{id}[/bold magenta] [bold cyan]| {note.title.value} |[/bold cyan]",
+            title_align="left",
             style="white on black",
             padding=(0, 1),
             border_style="green",
             expand=False,
             box=box.DOUBLE,
-            width=100,
+            width=100,            
         )
         console.print(panel) 
         console.print() 

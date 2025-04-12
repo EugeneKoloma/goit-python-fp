@@ -53,6 +53,13 @@ class Notes(UserDict):
             ).lower()
         ]
         return dict(result)
+    
+    def find_notes_by_title(self, query: str) -> dict:
+        query = query.lower()
+        result = [
+            (id, note) for id, note in self.data.items() if query in note.title._value.lower()
+        ]
+        return dict(result)
 
     def find_notes_by_tag(self, tag: str) -> dict:
         tag = tag.lower()
