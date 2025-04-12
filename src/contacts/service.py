@@ -12,6 +12,7 @@ from exceptions import (
 from output import (
     display_birthdays_table,
     display_contacts_table,
+    default_contacts_table_fields,
     output_info,
     output_warning,
 )
@@ -164,7 +165,7 @@ class PhoneBookService:
     @error_handler
     def show_all_contacts(self, args: list[str] = []) -> None:        
         if args:     
-            default_fields = ["Name", "Phones", "Birthday", "Emails", "Address", "Tags"]       
+            default_fields = list(default_contacts_table_fields.keys())     
             final_collumns = ["Name"]
             unknown_fields = ""        
             for arg in args:
@@ -176,7 +177,6 @@ class PhoneBookService:
                 output_info(
                     f"There are no {unknown_fields[:-2]} among ContactsBook fields!"
                 )
-            print(final_collumns)
             display_contacts_table(self.book.data.values(), final_collumns)
         else:
             display_contacts_table(self.book.data.values())

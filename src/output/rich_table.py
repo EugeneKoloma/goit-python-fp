@@ -2,6 +2,15 @@ from rich.console import Console
 from rich.table import Table
 
 console = Console()
+# Change colors later
+default_contacts_table_fields = {
+    "Name": "bold cyan",
+    "Phones": "green",
+    "Birthday": "magenta",
+    "Emails": "yellow",
+    "Address": "yellow",
+    "Tags": "red",
+}
 
 # To display contacts as rich table
 def display_contacts_table(records, user_fields: list =[]):
@@ -15,18 +24,10 @@ def display_contacts_table(records, user_fields: list =[]):
       - address (record.address)
       - tags (record.tags)
     """
-    # Change colors later
-    default_contacts_fields = {
-        "Name": "bold cyan",
-        "Phones": "green",
-        "Birthday": "magenta",
-        "Emails": "yellow",
-        "Address": "yellow",
-        "Tags": "red",
-    }
+    global default_contacts_table_fields
     table = Table(title="Contacts", show_lines=True, header_style="bold white")
-    for field, styles in default_contacts_fields.items():
-        table.add_column(field, style=styles)
+    for field, table_style in default_contacts_table_fields.items():
+        table.add_column(field, style=table_style)
 
     # Get Record attributes
     for record in records:
@@ -61,7 +62,7 @@ def display_contacts_table(records, user_fields: list =[]):
         # Make a list of indexes of fields, that are not in user's choice
         indexes = []
         index = 0
-        for field in list(default_contacts_fields.keys()):
+        for field in list(default_contacts_table_fields.keys()):
             if field not in user_fields:
                 indexes.append(index)
             index += 1
@@ -74,7 +75,6 @@ def display_contacts_table(records, user_fields: list =[]):
             indexes.remove(indexes[0])
 
     console.print(table)
-
 
 # To display birthdays as rich table
 def display_birthdays_table(birthdays, days_to):
