@@ -101,7 +101,7 @@ class PhoneBookService:
             case "birthday":
                 record.add_birthday(new_value)
 
-            case "tag":
+            case "tags":
                 if not old_value:
                     record.add_tag(new_value)
                     return
@@ -171,13 +171,13 @@ class PhoneBookService:
         record = self.book.find(name)
         if record is None:
             raise RecordNotFound(
-                f"Record not found with name: {Fore.GREEN}{name}{Fore.RESET}"
+                f"Record not found with name: {Fore.GREEN}{name.capitalize()}{Fore.RESET}"
             )
 
         if record.birthday is None:
-            output_warning(f"{name} has not birthday set.")
+            output_warning(f"{name.capitalize()} has not birthday set.")
 
-        output_info(f"{name} has a birthday at: {str(record.birthday)}")
+        output_info(f"{name.capitalize()} has a birthday at: {str(record.birthday)}")
 
     @error_handler
     def set_birthday(self, args):

@@ -73,14 +73,18 @@ class TagsValidator(Validator):
                     )
 
 
+# Local phone validation to avoid circular import problem
 def is_valid_phone(phone: str) -> bool:
-    return phone.isdigit() and 7 <= len(phone) <= 15
+    phone_pattern = re.compile(r"^\+?3?8?(0\d{9})$|^0\d{9}$")
+    return phone.isdigit() and (bool(phone_pattern.match(phone)))
 
 
+# Local email validation to avoid circular import problem
 def is_valid_email(email: str) -> bool:
     return re.match(r"[^@]+@[^@]+\.[^@]+", email) is not None
 
 
+# Normalize phone for the search and other needs
 def normalize_phone(p: str) -> str:
     """Remove spaces, +38, and keep only digits"""
     return re.sub(r"\D", "", p)[-10:]  # Keep last 9 digits (like 0671234567)
