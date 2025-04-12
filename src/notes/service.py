@@ -91,27 +91,8 @@ class NotesBookService:
             if self.notes_book.find_notes_by_query(query):
                 notes_output(self.notes_book.find_notes_by_query(query))
                 return self.notes_book.find_notes_by_query(query)  
-            raise NoteNotFoundError 
-        
-    @error_handler 
-    def find_notes_by_default(self, args: list[str]) -> dict | None:
-        query = " ".join(args)
-        if query:            
-            if query.startswith("id"):
-                query = query.replace("id", "").strip(", ")
-                notes_output(self.notes_book.find_notes_by_id(query))
-                return self.notes_book.find_notes_by_id(query)
-            if self.notes_book.find_notes_by_title(query):
-                notes_output(self.notes_book.find_notes_by_title(query))
-                return self.notes_book.find_notes_by_title(query)   
-            if self.notes_book.find_notes_by_tag(query):
-                notes_output(self.notes_book.find_notes_by_tag(query))
-                return self.notes_book.find_notes_by_tag(query)            
-            if self.notes_book.find_notes_by_query(query):
-                notes_output(self.notes_book.find_notes_by_query(query))
-                return self.notes_book.find_notes_by_query(query)    
-            raise NoteNotFoundError  
-        
+            raise NoteNotFoundError         
+   
     @error_handler
     def show_all_notes(self) -> None:
         notes_output(self.notes_book.data)
