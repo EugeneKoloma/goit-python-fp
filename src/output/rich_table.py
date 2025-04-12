@@ -1,3 +1,4 @@
+from rich import box
 from rich.console import Console
 from rich.table import Table
 
@@ -18,7 +19,13 @@ def display_contacts_table(records):
     """
 
     # Change colors later
-    table = Table(title="Contacts", show_lines=True, header_style="bold white")
+    table = Table(
+        title="Contacts",
+        show_lines=False,
+        box=box.ROUNDED,
+        header_style="bold white",
+        row_styles=["on #1a1a1a", "on #2a2a2a"],
+    )
     table.add_column("Name", style="bold cyan")
     table.add_column("Phone Numbers", style="green")
     table.add_column("Birthday", style="magenta")

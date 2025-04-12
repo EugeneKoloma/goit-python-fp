@@ -1,7 +1,8 @@
 from .Field import Field
 from .input_prompts import (
     edit_contact_prompt,
-    get_contact_details,
+    get_existing_contact_details,
+    get_new_contact_details,
     get_supported_fields,
     is_valid_field,
     prompt_for_field,
@@ -15,5 +16,6 @@ __all__ = [
     "is_valid_field",
     "get_supported_fields",
     "edit_contact_prompt",
-    "get_contact_details",
+    "get_new_contact_details",
+    "get_existing_contact_details",
 ]

@@ -1,9 +1,11 @@
+import re
+
 from colorama import Fore
+from rapidfuzz import fuzz
 
 from contacts import Birthday, Email, Phone
 from decorators import error_handler
 from exceptions import (
-    EmailAlreadyOwned,
     FieldNotFound,
     InvalidDaysInput,
     PhoneAlreadyOwned,
@@ -19,6 +21,7 @@ from utils.search import elastic_search
 
 from .ContactsBook import ContactsBook
 from .Records import Record
+from .undo import save_undo_state
 
 
 class PhoneBookService:
@@ -35,6 +38,8 @@ class PhoneBookService:
 
     @error_handler
     def add_contact_from_dict(self, data: dict):
+        save_undo_state(self.book)
+
         name = data.get("name")
         phone = data.get("phone")
         email = data.get("email")
@@ -42,10 +47,11 @@ class PhoneBookService:
         birthday = data.get("birthday")
         tags = data.get("tags")
 
-        if self.book.is_phone_owned(phone):
-            raise PhoneAlreadyOwned(
-                f"This number {Fore.YELLOW}{phone}{Fore.RESET} already owned."
-            )
+        # Moving validation to separate validators.py level
+        # if self.book.is_phone_owned(phone):
+        #     raise PhoneAlreadyOwned(
+        #         f"This number {Fore.YELLOW}{phone}{Fore.RESET} already owned."
+        #     )
 
         new_record = Record(name)
         new_record.add_phone(phone)
@@ -67,6 +73,8 @@ class PhoneBookService:
     def edit_contact_field(
         self, name: str, field: str, new_value: str, old_value: str = ""
     ):
+        save_undo_state(self.book)
+
         record = self.book.find(name)
         if record is None:
             raise RecordNotFound(f"Contact {Fore.GREEN}{name}{Fore.RESET} not found.")
@@ -84,10 +92,11 @@ class PhoneBookService:
                 else:
                     record.add_phone(new_value)
             case "email":
-                if self.book.is_email_owned(new_value):
-                    raise EmailAlreadyOwned(
-                        f"This email {Fore.YELLOW}{new_value}{Fore.RESET} already owned."
-                    )
+                # Moving validation to separate validators.py level
+                # if self.book.is_email_owned(new_value):
+                #     raise EmailAlreadyOwned(
+                #         f"This email {Fore.YELLOW}{new_value}{Fore.RESET} already owned."
+                #     )
                 if not old_value:
                     record.add_email(new_value)
                     return
@@ -101,6 +110,7 @@ class PhoneBookService:
                 record.add_address(new_value)
             case "birthday":
                 record.add_birthday(new_value)
+
             case "tag":
                 if not old_value:
                     record.add_tag(new_value)
@@ -121,6 +131,8 @@ class PhoneBookService:
 
     @error_handler
     def remove_contact_field(self, name: str, field: str, value: str):
+        save_undo_state(self.book)
+
         record = self.book.find(name)
         if record is None:
             raise RecordNotFound(f"Contact {Fore.GREEN}{name}{Fore.RESET} not found.")
@@ -215,6 +227,8 @@ class PhoneBookService:
 
     @error_handler
     def change_contacts_phone(self, args) -> None:
+        save_undo_state(self.book)
+
         name, old_phone, new_phone = args
         record = self.book.find(name)
         if record is None:
@@ -226,8 +240,9 @@ class PhoneBookService:
                 f"Phone number {new_phone} not exist. You can add it using the 'add' command."
             )
 
-        if self.book.is_phone_owned(new_phone):
-            raise PhoneAlreadyOwned(f"This number {new_phone} already owned.")
+        # Moving validation to separate validators.py level
+        # if self.book.is_phone_owned(new_phone):
+        #     raise PhoneAlreadyOwned(f"This number {new_phone} already owned.")
 
         phone.value = new_phone
         output_info(
@@ -263,3 +278,41 @@ class PhoneBookService:
     @error_handler
     def get_all_contact_names(self) -> list[str]:
         return [record.name for record in self.book.data.values()]
+
+    @error_handler
+    def find_contacts(self, query: str, mode="smart") -> list:
+        results = []
+
+        for record in self.book.data.values():
+            # Build one long string to search in
+            parts = [
+                str(record.name),
+                *[str(p) for p in getattr(record, "phones", [])],
+                *[str(e) for e in getattr(record, "emails", [])],
+                str(getattr(record, "birthday", "")) or "",
+                str(getattr(record, "address", "")) or "",
+                " ".join(str(t) for t in getattr(record, "tags", [])),
+            ]
+
+            full_text = " ".join(parts).lower()
+
+            if mode == "regex":
+                try:
+                    if re.search(query, full_text, re.IGNORECASE):
+                        results.append(record)
+                except re.error:
+                    pass  # Invalid regex
+            elif mode == "fuzzy":
+                if fuzz.partial_ratio(query.lower(), full_text) > 75:
+                    results.append(record)
+            else:  # Smart = try regex first
+                try:
+                    if re.search(query, full_text, re.IGNORECASE):
+                        results.append(record)
+                        continue
+                except re.error:
+                    pass
+                if fuzz.partial_ratio(query.lower(), full_text) > 75:
+                    results.append(record)
+
+        return results

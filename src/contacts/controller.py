@@ -2,14 +2,26 @@ from colorama import Fore
 
 from common.input_prompts import (
     edit_contact_prompt,
-    get_contact_details,
+    get_new_contact_details,
     get_supported_fields,
     is_valid_field,
     prompt_for_field,
 )
+from output import output_error, output_info, output_warning
 
 from .ContactsBook import ContactsBook
 from .service import PhoneBookService
+from .undo import load_undo_state
+
+
+def handle_undo(self):
+    restored_book = load_undo_state()
+    if not restored_book:
+        output_error("No undo available.")
+        return
+    self.book = restored_book
+    self.book.save_to_disk()  # Overwrite .bin or .json
+    output_info("Last operation undone.")
 
 
 def conntroller(book: ContactsBook):  # consider renaming to `controller`
@@ -24,7 +36,7 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
             case "add":
                 if not args:
                     print(f"{Fore.LIGHTBLUE_EX}Adding contact...{Fore.RESET}")
-                    data = get_contact_details()
+                    data = get_new_contact_details(book)
                     book_service.add_contact_from_dict(data)
 
                 elif len(args) == 1:
@@ -107,7 +119,34 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                     f"{Fore.LIGHTBLUE_EX}{book_service.show_next_n_days_birthdays(args)}{Fore.RESET}"
                 )
 
+            case "find":
+                if not args:
+                    print("Please provide a query to search.")
+                    return
+
+                query = args[0]
+                mode = args[1] if len(args) > 1 else "smart"
+                results = book_service.find_contacts(query, mode=mode)
+
+                if results:
+                    from output.rich_table import display_contacts_table
+
+                    display_contacts_table(results)
+                else:
+                    print(
+                        f"{Fore.YELLOW}No contacts found matching: {query}{Fore.RESET}"
+                    )
+
+            case "undo":
+                restored = load_undo_state()
+                if restored:
+                    # Overwrite the passed-in `book` object
+                    book.data = restored.data
+                    output_info("Last operation has been undone!")
+                else:
+                    output_warning("Nothing to undo yet.")
+
             case _:
-                print(f"{Fore.RED}Unknown contact command: {action}{Fore.RESET}")
+                output_error(f"Unknown contact command: {action}")
 
     return commands
