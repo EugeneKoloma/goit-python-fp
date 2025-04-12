@@ -18,6 +18,7 @@ COMMAND_TREE = {
         "add-birthday",
         "show-birthday",
         "remove",
+        "remove contact",
         "delete",
     ],
     "notes": ["add", "search", "tag", "delete", "edit"],

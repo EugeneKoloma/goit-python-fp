@@ -129,49 +129,49 @@ class PhoneBookService:
 
         output_info(f"Contact {name}'s field '{field}' has been updated.")
 
-    @error_handler
-    def remove_contact_field(self, name: str, field: str, value: str):
-        save_undo_state(self.book)
+    # @error_handler
+    # def remove_contact_field(self, name: str | None, field: str | None, value: str | None):
+    #     save_undo_state(self.book)
 
-        record = self.book.find(name)
-        if record is None:
-            raise RecordNotFound(f"Contact {Fore.GREEN}{name}{Fore.RESET} not found.")
+    #     record = self.book.find(name)
+    #     if record is None:
+    #         raise RecordNotFound(f"Contact {Fore.GREEN}{name}{Fore.RESET} not found.")
 
-        match field:
-            case "phone":
-                phone = record.find_phone(value)
-                if phone:
-                    record.phones.remove(phone)
-                else:
-                    raise FieldNotFound(f"Phone {value} not found.")
-            case "email":
-                email = record.find_email(value)
-                if email:
-                    record.emails.remove(email)
-                else:
-                    raise FieldNotFound(f"Email {value} not found.")
-            case "address":
-                if record.address:
-                    record.address = None
-                else:
-                    raise FieldNotFound(f"Address {value} not found.")
-            case "birthday":
-                if record.birthday:
-                    record.birthday = None
-                else:
-                    raise FieldNotFound(f"Birthday {value} not found.")
-            case "tag":
-                tag = record.find_tag(value)
-                if tag:
-                    record.tags.remove(tag)
-                else:
-                    raise FieldNotFound(f"Tag {value} not found.")
-            case _:
-                raise FieldNotFound(
-                    f"Field {Fore.YELLOW}{field}{Fore.RESET} not recognized."
-                )
+    #     match field:
+    #         case "phone":
+    #             phone = record.find_phone(value)
+    #             if phone:
+    #                 record.phones.remove(phone)
+    #             else:
+    #                 raise FieldNotFound(f"Phone {value} not found.")
+    #         case "email":
+    #             email = record.find_email(value)
+    #             if email:
+    #                 record.emails.remove(email)
+    #             else:
+    #                 raise FieldNotFound(f"Email {value} not found.")
+    #         case "address":
+    #             if record.address:
+    #                 record.address = None
+    #             else:
+    #                 raise FieldNotFound(f"Address {value} not found.")
+    #         case "birthday":
+    #             if record.birthday:
+    #                 record.birthday = None
+    #             else:
+    #                 raise FieldNotFound(f"Birthday {value} not found.")
+    #         case "tag":
+    #             tag = record.find_tag(value)
+    #             if tag:
+    #                 record.tags.remove(tag)
+    #             else:
+    #                 raise FieldNotFound(f"Tag {value} not found.")
+    #         case _:
+    #             raise FieldNotFound(
+    #                 f"Field {Fore.YELLOW}{field}{Fore.RESET} not recognized."
+    #             )
 
-        output_info(f"Contact {name}'s field '{field}' has been removed.")
+    #     output_info(f"Contact {name}'s field '{field}' has been removed.")
 
     @error_handler
     def show_all_contacts(self):
@@ -316,3 +316,50 @@ class PhoneBookService:
                     results.append(record)
 
         return results
+
+    @error_handler
+    def remove_contact_field(self, name: str, field: str, value: str) -> bool:
+        save_undo_state(self.book)
+
+        record = self.book.find(name)
+        if not record:
+            return False
+
+        match field:
+            case "phone":
+                initial_len = len(record.phones)
+                record.phones = [p for p in record.phones if str(p) != value]
+                return len(record.phones) < initial_len
+
+            case "email":
+                initial_len = len(getattr(record, "emails", []))
+                record.emails = [
+                    e for e in getattr(record, "emails", []) if str(e) != value
+                ]
+                return len(record.emails) < initial_len
+
+            case "tag":
+                initial_len = len(getattr(record, "tags", []))
+                record.tags = [
+                    t for t in getattr(record, "tags", []) if str(t) != value
+                ]
+                return len(record.tags) < initial_len
+
+            case _:
+                return False
+
+    @error_handler
+    def remove_contact(self, name: str | None) -> bool:
+        save_undo_state(self.book)
+
+        record = self.book.find(name)
+        if not record:
+            return False
+
+        # Find the actual key that was used to store this contact
+        for key, rec in self.book.data.items():
+            if rec is record:
+                del self.book.data[key]
+                return True
+
+        return False

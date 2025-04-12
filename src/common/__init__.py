@@ -6,6 +6,7 @@ from .input_prompts import (
     get_supported_fields,
     is_valid_field,
     prompt_for_field,
+    prompt_remove_details,
 )
 from .Tag import Tag
 
@@ -13,6 +14,7 @@ __all__ = [
     "Field",
     "Tag",
     "prompt_for_field",
+    "prompt_remove_details",
     "is_valid_field",
     "get_supported_fields",
     "edit_contact_prompt",
