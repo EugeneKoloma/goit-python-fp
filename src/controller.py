@@ -20,6 +20,8 @@ COMMAND_TREE = {
         "show-birthday",
         "remove",
         "delete",
+        "undo",
+        "find",
     ],
     "notes": ["create", "edit", "add", "remove", "find", "all"],
 }

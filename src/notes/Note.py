@@ -25,7 +25,7 @@ class Note:
         self.updated_at.date = dtdt.now()
 
     def add_tag(self, tag: str):
-        if tag.lower() not in self.tags:
+        if tag.lower() not in [tag.value for tag in self.tags]:
             self.tags.append(Tag(tag.lower()))
         else:
             print(f"[INFO]: The note with title '{self.tags}' already has such tag!")

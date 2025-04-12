@@ -19,15 +19,18 @@ Usage example:
     print(contact.list_tags())
 """
 
-from colorama import Fore
 
 
 class Tag:
     def __init__(self, value: str):
         self._value = value.lower().strip()
 
+    @property
+    def tag(self):
+        return self.__str__
+
     def __str__(self):
-        return f"{Fore.CYAN}#{self._value}{Fore.RESET}"
+        return f"#{self._value}"
 
     def __eq__(self, other):
         if isinstance(other, Tag) and self._value == other._value:

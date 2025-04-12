@@ -120,20 +120,37 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
 
             case "find":
                 if not args:
-                    print("Please provide a query to search.")
+                    print(
+                        "Usage: contacts find --name John | --email gmail.com | --tag #work"
+                    )
                     return
 
-                query = args[0]
-                mode = args[1] if len(args) > 1 else "smart"
-                results = book_service.find_contacts(query, mode=mode)
+                filters = {}
+                it = iter(args)
+                for arg in it:
+                    if arg.startswith("--"):
+                        field = arg[2:]
+                        if field not in ["name", "email", "tag", "phone"]:
+                            print(
+                                f"{Fore.RED}Unsupported filter: --{field}{Fore.RESET}"
+                            )
+                            return
+                        try:
+                            value = next(it)
+                        except StopIteration:
+                            print(f"{Fore.RED}Missing value for --{field}{Fore.RESET}")
+                            return
+                        filters[field] = value
+
+                results = book_service.find_contacts(**filters)
 
                 if results:
-                    from output.rich_table import display_contacts_table
+                    from output import display_contacts_table
 
                     display_contacts_table(results)
                 else:
                     print(
-                        f"{Fore.YELLOW}No contacts found matching: {query}{Fore.RESET}"
+                        f"{Fore.YELLOW}No contacts found matching: {filters}{Fore.RESET}"
                     )
 
             case "undo":
