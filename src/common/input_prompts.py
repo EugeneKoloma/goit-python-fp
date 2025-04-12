@@ -69,6 +69,7 @@ def is_valid_note_field(field: str) -> bool:
 
 
 field_value_completers = {
+    "name": WordCompleter([], ignore_case=True),
     "phone": WordCompleter(
         [], ignore_case=True
     ),  # can fill with contact phones if needed

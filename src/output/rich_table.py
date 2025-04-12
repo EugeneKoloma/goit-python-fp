@@ -66,7 +66,13 @@ def display_contacts_table(records, user_fields: list = []):
       - tags (record.tags)
     """
     global default_contacts_table_fields
-    table = Table(title="Contacts", show_lines=True, header_style="bold white")
+    table = Table(
+        title="Contacts",
+        show_lines=False,
+        header_style="bold white",
+        row_styles=["on black", "on grey11"],
+        box=box.ROUNDED,
+    )
     for field, table_style in default_contacts_table_fields.items():
         table.add_column(field, style=table_style)
 
