@@ -7,6 +7,7 @@ from context import data_cxt_mngr
 from notes import notes_controller
 from output import output_warning
 from output.help_ import show_help_ascii_tree, show_help_panels
+from tests.test_contacts import run_all_tests
 
 COMMAND_TREE = {
     "contacts": [
@@ -52,6 +53,7 @@ COMMAND_TREE = {
     "notes": ["create", "edit", "add-tags", "remove", "find", "all", "export"],
     "help": [],
     "help-tree": [],
+    "test-contacts": [],
     "exit": [],
     "close": [],
 }
@@ -121,6 +123,8 @@ def bootstrap():
                         show_help_panels()
                     case "help-tree":
                         show_help_ascii_tree()
+                    case "test-contacts":
+                        run_all_tests()
                     case _:
                         output_warning(
                             f"Unknown command: [{Fore.RED}{command}{Fore.RESET}]. Please, use [{Fore.CYAN}help{Fore.RESET}] to see available commands."
