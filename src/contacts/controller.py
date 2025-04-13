@@ -344,6 +344,16 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                 else:
                     output_warning("Nothing to undo yet.")
 
+            case "export":
+                book_service.export_contacts_to_csv(args)
+
+            case "import":
+                output_warning("All duplicates will be recovered!")
+                if input("Confirm import [y]: ") == "y":
+                    book_service.import_contacts_to_csv(args)
+                else:
+                    output_info("Import canceled!")
+
             case _:
                 output_error(f"Unknown contact command: {action}")
 
