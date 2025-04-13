@@ -45,6 +45,8 @@ COMMAND_TREE = {
         "sort address",
         "sort birthday",
         "sort tags",
+        "export",
+        "import",
     ],
     "notes": ["create", "edit", "add", "remove", "find", "all"],
     "help": [],
