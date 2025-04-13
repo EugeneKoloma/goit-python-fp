@@ -46,13 +46,13 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
         if not args:
             return
 
+        # Convert raw args into a single string and parse respecting quotes
+        raw_input = " ".join(args)
+        args = parse_args(raw_input)
+
         action, *args = args
         match action:
             case "add":
-                # Convert raw args into a single string and parse respecting quotes
-                raw_input = " ".join(args)
-                args = parse_args(raw_input)
-
                 if not args:
                     # Full interactive mode
                     data = get_new_contact_details(book)
@@ -207,9 +207,6 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                     book_service.edit_contact_field(name, field, new_value)
                     output_info(f"{field.capitalize()} updated for {name}")
 
-            case "change":
-                book_service.change_contacts_phone(args)
-
             case "remove":
                 if not args:
                     name, field, value = prompt_remove_details(book)
@@ -223,22 +220,51 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                         success = book_service.remove_contact_field(name, field, value)
 
                     if success:
-                        print(
-                            f"{Fore.GREEN}{field.capitalize()} removed successfully from {name}.{Fore.RESET}"
+                        output_info(
+                            f"{field.capitalize()} removed successfully from {name}"
                         )
                     else:
-                        print(
-                            f"{Fore.RED}Failed to remove {field} from {name}.{Fore.RESET}"
-                        )
+                        output_error(f"Failed to remove {field} from {name}")
                     return
 
-                if args[0] == "contact" and len(args) == 2:
-                    _, name = args
-                    success = book_service.remove_contact(name)
+                if args[0] == "contact" and len(args) >= 2:
+                    name = " ".join(args[1:])
+                    names = book_service.find_contacts(query=name, mode="fuzzy")
+
+                    if not names:
+                        output_error(f"No contacts found matching: {name}")
+                        return
+
+                    if len(names) == 1:
+                        # use the actual matched name
+                        actual_name = str(names[0].name)
+                        success = book_service.remove_contact(actual_name)
+                        name = actual_name  # update for success message
+                    else:
+                        output_info(f"Found multiple contacts matching '{name}':")
+                        for idx, match in enumerate(names, start=1):
+                            print(f"{idx}. {match}")
+
+                        try:
+                            choice = int(
+                                input("Enter the number of the contact to remove: ")
+                            )
+                            if 1 <= choice <= len(names):
+                                selected_name = str(names[choice - 1].name)
+                                success = book_service.remove_contact(selected_name)
+                                name = selected_name
+                            else:
+                                output_error("Invalid selection.")
+                                return
+                        except ValueError:
+                            output_error("Invalid input. Please enter a number.")
+                            return
+
                     if success:
                         output_info(f"Contact '{name}' has been removed.")
                     else:
                         output_error(f"Contact '{name}' not found.")
+
                 elif len(args) == 3:
                     field, value, name = args
                     success = book_service.remove_contact_field(name, field, value)
@@ -374,6 +400,28 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                     output_info("Last operation has been undone!")
                 else:
                     output_warning("Nothing to undo yet.")
+
+            case "photo":
+                if not args:
+                    # Prompt for path if missing
+                    photo_path = prompt_for_field("Photo path")
+                else:
+                    # Join args in case of path with spaces (quoted handled by parse_args)
+                    photo_path = " ".join(args)
+
+                if not book_service.validate_field("photo", photo_path):
+                    output_error("Invalid path. Please provide an existing .txt file.")
+                    return
+
+                name = prompt_for_field("name")
+                record = book.find(name)
+                if not record:
+                    output_error(f"Contact '{name}' not found.")
+                    return
+
+                # Save the photo path in the record
+                record.photo = photo_path
+                output_info(f"Photo added to contact '{name}'.")
 
             case "export":
                 book_service.export_contacts_to_csv(args)

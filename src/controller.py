@@ -17,6 +17,7 @@ COMMAND_TREE = {
         "add address",
         "add birthday",
         "add tags",
+        "add photo",
         "edit",
         "edit name",
         "edit phone",

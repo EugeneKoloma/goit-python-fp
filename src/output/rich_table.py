@@ -10,8 +10,9 @@ default_contacts_table_fields = [
     "Birthday",
     "Emails",
     "Address",
-    "Tags"
+    "Tags",
 ]
+
 
 def display_notes_table(records):
     """
@@ -63,8 +64,9 @@ def display_contacts_table(records, user_fields: list = []):
       - email (record.email)
       - address (record.address)
       - tags (record.tags)
+      - photo
     """
-    
+
     table = Table(
         title="Contacts",
         show_lines=False,
@@ -78,6 +80,7 @@ def display_contacts_table(records, user_fields: list = []):
     table.add_column("Emails", style="yellow", max_width=20)
     table.add_column("Address", style="yellow", max_width=25)
     table.add_column("Tags", style="red", max_width=12)
+    table.add_column("Photo", style="red", max_width=15)
 
     # Get Record attributes
     for record in records:
@@ -104,8 +107,11 @@ def display_contacts_table(records, user_fields: list = []):
         tags = getattr(record, "tags", None)
         tags = ", ".join(tags) if tags else "—"
 
+        photo = getattr(record, "photo", None)
+        photo = f"📷 {photo.value}" if photo else "—"
+
         table.add_row(
-            name.capitalize(), phones, birthday, emails, address, tags
+            name.capitalize(), phones, birthday, emails, address, tags, photo
         )  # <- Add email and address inside later and wrap like tags, the same way
 
     global default_contacts_table_fields

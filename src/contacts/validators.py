@@ -1,3 +1,4 @@
+import os
 import re
 from datetime import datetime as dt
 
@@ -71,6 +72,21 @@ class TagsValidator(Validator):
                     raise ValidationError(
                         message="Each tag must contain only letters or digits (e.g., #Work, #Family)."
                     )
+
+
+class PathValidator(Validator):
+    def validate(self, document):
+        text = document.text.strip()
+
+        if not text.endswith(".txt"):
+            raise ValidationError(
+                message="File must be a .txt file.", cursor_position=len(text)
+            )
+
+        if not os.path.isfile(text):
+            raise ValidationError(
+                message="File does not exist.", cursor_position=len(text)
+            )
 
 
 # Local phone validation to avoid circular import problem

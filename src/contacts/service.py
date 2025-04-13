@@ -3,7 +3,7 @@ import re
 from colorama import Fore
 from rapidfuzz import fuzz
 
-from contacts import Birthday, Email, Phone
+from contacts import Birthday, Email, Phone, Photo
 from decorators import error_handler
 from exceptions import (
     FieldNotFound,
@@ -120,6 +120,10 @@ class PhoneBookService:
                     print(f"Tag {old_value} has been updated to {new_value}.")
                 else:
                     raise FieldNotFound(f"Tag {old_value} not found.")
+
+            case "photo":
+                record.add_photo(new_value)
+
             case _:
                 raise FieldNotFound(
                     f"Field {Fore.YELLOW}{field}{Fore.RESET} not recognized."
@@ -240,6 +244,7 @@ class PhoneBookService:
             "phone": Phone.validate_phone_number,
             "email": Email.validate_email,
             "birthday": Birthday.validate_date,
+            "photo": Photo.validate_path,
         }
 
         validator = validators.get(field)
