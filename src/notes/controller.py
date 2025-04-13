@@ -62,11 +62,20 @@ def controller(notes: Notes):
                 else:
                     print(f"{Fore.RED}Invalid remove command.{Fore.RESET}")
 
-            case "add":
-                if args[0] == "tags" and len(args) == 3:
+            case "add-tags":
+                if not args:
+                    output_error(
+                        "Please provide note ID and tags to add. Example: add-tags <note_id> <tag1,tag2>"
+                    )
+                    return
+                if len(args) == 2:
                     tags = args[1].split(",")
-                    note_id = args[2]
+                    note_id = args[0]
                     notes_service.add_tags_to_note_by_id(note_id, tags)
+                else:
+                    output_error(
+                        f"Wrong number of atguments. Expected 3, got {len(args)}."
+                    )
 
             case "find":
                 if not args:
