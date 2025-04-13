@@ -40,6 +40,8 @@ class PhoneBookService:
     @error_handler
     def add_contact_from_dict(self, data: dict):
         save_undo_state(self.book)
+        global UNDONE
+        UNDONE = False
 
         name = data.get("name")
         phone = data.get("phone")
@@ -69,6 +71,8 @@ class PhoneBookService:
         self, name: str, field: str, new_value: str, old_value: str = ""
     ):
         save_undo_state(self.book)
+        global UNDONE
+        UNDONE = True
 
         record = self.book.find(name)
         if record is None:
@@ -196,6 +200,8 @@ class PhoneBookService:
     @error_handler
     def change_contacts_phone(self, args) -> None:
         save_undo_state(self.book)
+        global UNDONE
+        UNDONE = True
 
         name, old_phone, new_phone = args
         record = self.book.find(name)
@@ -312,6 +318,8 @@ class PhoneBookService:
     @error_handler
     def remove_contact_field(self, name: str, field: str, value: str) -> bool:
         save_undo_state(self.book)
+        global UNDONE
+        UNDONE = True
 
         record = self.book.find(name)
         if not record:
@@ -343,6 +351,8 @@ class PhoneBookService:
     @error_handler
     def remove_contact(self, name: str | None) -> bool:
         save_undo_state(self.book)
+        global UNDONE
+        UNDONE = True
 
         record = self.book.find(name)
         if not record:
