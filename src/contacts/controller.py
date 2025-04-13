@@ -19,6 +19,9 @@ from .ContactsBook import ContactsBook
 from .service import PhoneBookService
 from .undo import load_undo_state
 
+global UNDONE
+UNDONE = False
+
 
 def handle_undo(book: ContactsBook):
     restored_book = load_undo_state()
@@ -57,29 +60,52 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                     output_info(f"Created new contact '{data['name'].capitalize()}'")
 
                 elif len(args) == 1:
-                    # One field provided: `contacts add phone`
+                    # One field provided: `contacts add phone` or `contacts add name`
                     field = args[0]
                     if not is_valid_field(field):
                         supported = ", ".join(get_supported_fields())
                         output_error(f"Unknown field. Choose from: {supported}")
                         return
 
-                    if field != "name":
-                        name = prompt_for_field("name").strip()
-
-                    value = prompt_for_field(field)
+                    value = prompt_for_field(field).strip()
                     if not book_service.validate_field(field, value):
                         output_error(f"Invalid value for {field}.")
                         return
 
-                    if book_service.contact_exists(name):
-                        book_service.edit_contact_field(name, field, value)
-                        output_info(f"Updated {field} for {name}")
-                    else:
-                        book_service.add_contact_from_dict({"name": name, field: value})
-                        output_info(
-                            f"Created new contact '{name.capitalize()}' with {field}."
+                    if field == "name":
+                        # Only name was provided, so we need to prompt for phone at least
+                        name = value
+                        phone = prompt_for_field("phone").strip()
+                        if not book_service.validate_field("phone", phone):
+                            output_error("Invalid phone number.")
+                            return
+                        book_service.add_contact_from_dict(
+                            {"name": name, "phone": phone}
                         )
+                        output_info(
+                            f"Created new contact '{name.capitalize()}' with phone."
+                        )
+                    else:
+                        # Some other field was provided, so prompt for name
+                        if field != "name":
+                            name = prompt_for_field("name").strip()
+
+                            if book_service.contact_exists(name):
+                                book_service.edit_contact_field(name, field, value)
+                                output_info(f"Updated {field} for {name}")
+                            else:
+                                # Also prompt for phone if not the one being added
+                                contact_data = {"name": name, field: value}
+                                if field != "phone":
+                                    phone = prompt_for_field("phone").strip()
+                                    if not book_service.validate_field("phone", phone):
+                                        output_error("Invalid phone number.")
+                                        return
+                                    contact_data["phone"] = phone
+                                book_service.add_contact_from_dict(contact_data)
+                                output_info(
+                                    f"Created new contact '{name.capitalize()}' with {field}."
+                                )
 
                 elif len(args) == 2:
                     field, value = args
@@ -95,16 +121,15 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
 
                         existing_record = book_service.book.find(name)
 
-                        if existing_record:
-                            if not existing_record.phones:
-                                # Prompt for phone
-                                phone = prompt_for_field("phone")
-                                if not book_service.validate_field("phone", phone):
-                                    output_error("Invalid phone number.")
-                                    return
-                                contact_data["phone"] = phone
-                            else:
-                                contact_data["phone"] = str(existing_record.phones[0])
+                        if existing_record and existing_record.phones:
+                            contact_data["phone"] = str(existing_record.phones[0])
+                        else:
+                            # Prompt for phone if no record or no phones
+                            phone = prompt_for_field("phone")
+                            if not book_service.validate_field("phone", phone):
+                                output_error("Invalid phone number.")
+                                return
+                            contact_data["phone"] = phone
 
                         book_service.add_contact_from_dict(contact_data)
                         output_info(f"Created new contact '{name}' with phone.")
@@ -120,19 +145,16 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                             return
 
                         contact_data = {"name": name, field: value}
-
                         existing_record = book_service.book.find(name)
 
-                        if existing_record:
-                            if not existing_record.phones:
-                                # Prompt for phone
-                                phone = prompt_for_field("phone")
-                                if not book_service.validate_field("phone", phone):
-                                    output_error("Invalid phone number.")
-                                    return
-                                contact_data["phone"] = phone
-                            else:
-                                contact_data["phone"] = str(existing_record.phones[0])
+                        if existing_record and existing_record.phones:
+                            contact_data["phone"] = str(existing_record.phones[0])
+                        else:
+                            phone = prompt_for_field("phone").strip()
+                            if not book_service.validate_field("phone", phone):
+                                output_error("Invalid phone number.")
+                                return
+                            contact_data["phone"] = phone
 
                         book_service.add_contact_from_dict(contact_data)
                         output_info(f"Created new contact '{name}' with {field}.")
@@ -154,10 +176,8 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                         output_info(f"Updated {field} for {name.capitalize()}")
                     else:
                         contact_data = {"name": name, field: value}
-
-                        # Ensure phone is included
                         if field != "phone":
-                            phone = prompt_for_field("phone")
+                            phone = prompt_for_field("phone").strip()
                             if not book_service.validate_field("phone", phone):
                                 output_error("Invalid phone format.")
                                 return
@@ -333,8 +353,11 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
 
             case "undo":
                 restored = load_undo_state()
-                if restored:
+                global UNDONE
+
+                if restored and not UNDONE:
                     # Overwrite the passed-in `book` object
+                    UNDONE = True
                     book.data = restored.data
                     output_info("Last operation has been undone!")
                 else:

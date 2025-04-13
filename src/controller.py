@@ -52,6 +52,9 @@ COMMAND_TREE = {
     "close": [],
 }
 
+global UNDONE
+UNDONE = False
+
 
 class CommandCompleter(Completer):
     def get_completions(self, document, complete_event):
