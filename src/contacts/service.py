@@ -122,12 +122,11 @@ class PhoneBookService:
     @error_handler
     def show_all_contacts(self, args: list[str] = []) -> None:
         if args:
-            default_fields = list(default_contacts_table_fields.keys())
             final_collumns = ["Name"]
             unknown_fields = ""
             for arg in args:
                 if (
-                    arg.capitalize() in default_fields
+                    arg.capitalize() in default_contacts_table_fields
                     and arg.capitalize() not in final_collumns
                 ):
                     final_collumns.append(arg.capitalize())
