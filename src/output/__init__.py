@@ -5,6 +5,7 @@ from output.rich_table import (
     display_contacts_table,
     display_notes_table,
 )
+from output.show_contact import show_contact_card
 
 __all__ = [
     "output_error",
@@ -15,4 +16,5 @@ __all__ = [
     "display_birthdays_table",
     "default_contacts_table_fields",
     "display_notes_table",
+    "show_contact_card",
 ]

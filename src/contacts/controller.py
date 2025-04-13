@@ -13,7 +13,7 @@ from common.input_prompts import (
     prompt_remove_details,
 )
 from context import save_data
-from output import output_error, output_info, output_warning
+from output import output_error, output_info, output_warning, show_contact_card
 
 from .ContactsBook import ContactsBook
 from .service import PhoneBookService
@@ -305,6 +305,18 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
 
             case "birthdays":
                 book_service.show_next_n_days_birthdays(args)
+
+            case "show":
+                if not args or len(args) > 1:
+                    output_error("Usage: contacts show [NAME]")
+                    return
+
+                name = args[0]
+                record = book.find(name)
+                if not record:
+                    output_error(f"No contact found with name: {name}")
+                else:
+                    show_contact_card(record)
 
             case "find":
                 if not args:
