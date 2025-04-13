@@ -1,5 +1,6 @@
 import argparse
 import re
+from datetime import datetime as dt
 
 from colorama import Fore
 
@@ -251,8 +252,22 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
 
                 def get_sort_key(record):
                     value = getattr(record, field, None)
+
+                    if field == "birthday":
+                        try:
+                            # Очікуємо, що value — об'єкт Birthday із .value типу datetime.date або str
+                            birthday_val = (
+                                value.value if hasattr(value, "value") else value
+                            )
+                            if isinstance(birthday_val, dt):
+                                return birthday_val
+                            return dt.strptime(str(birthday_val), "%d.%m.%Y")
+                        except Exception:
+                            return dt.max  # якщо не вдалося парсити — останнім
+
                     if isinstance(value, list):
                         return str(value[0]) if value else ""
+
                     return str(value) if value else ""
 
                 sorted_records = sorted(

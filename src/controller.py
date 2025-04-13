@@ -39,9 +39,17 @@ COMMAND_TREE = {
         "undo",
         "find",
         "show",
+        "sort name",
+        "sort phone",
+        "sort email",
+        "sort address",
+        "sort birthday",
+        "sort tags",
     ],
     "notes": ["create", "edit", "add", "remove", "find", "all"],
     "help": [],
+    "exit": [],
+    "close": [],
 }
 
 
