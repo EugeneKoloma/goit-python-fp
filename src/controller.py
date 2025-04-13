@@ -48,7 +48,7 @@ COMMAND_TREE = {
         "export",
         "import",
     ],
-    "notes": ["create", "edit", "add", "remove", "find", "all"],
+    "notes": ["create", "edit", "add", "remove", "find", "all", "export"],
     "help": [],
     "exit": [],
     "close": [],
