@@ -67,10 +67,6 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                     if field != "name":
                         name = prompt_for_field("name").strip()
 
-                    if not name:
-                        output_error("Contact name is required.")
-                        return
-
                     value = prompt_for_field(field)
                     if not book_service.validate_field(field, value):
                         output_error(f"Invalid value for {field}.")
