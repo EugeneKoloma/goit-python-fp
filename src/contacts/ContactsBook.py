@@ -19,9 +19,16 @@ class ContactsBook(UserDict):
     def add_record(self, record: Record):
         self.data[record.name._value] = record
 
+    # def find(self, name: str) -> Record | None:
+    #     for record in self.data.values():
+    #         if str(record.name).lower() == name.lower():
+    #             return record
+    #     return None
+
     def find(self, name: str) -> Record | None:
+        normalized = " ".join(name.lower().split())  # strips and collapses spaces
         for record in self.data.values():
-            if str(record.name).lower() == name.lower():
+            if " ".join(str(record.name).lower().split()) == normalized:
                 return record
         return None
 

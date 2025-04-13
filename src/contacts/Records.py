@@ -10,17 +10,27 @@ from colorama import Fore
 
 from common.Tag import Tag
 
-from .ContactFields import Address, Birthday, Email, Name, Phone
+from .ContactFields import Address, Birthday, Email, Name, Phone, Photo
 
 
 class Record:
-    def __init__(self, name: Name):
+    def __init__(
+        self,
+        name: Name,
+        phones=[],
+        birthday=None,
+        tags=[],
+        address=None,
+        emails=[],
+        photo=None,
+    ):
         self.name = Name(name)
-        self.phones: list[Phone] = []
-        self.birthday: Birthday | None = None
-        self.tags: list[Tag] = []
-        self.address: Address | None = None
-        self.emails: list[Email] = []
+        self.phones: list[Phone] = phones
+        self.birthday: Birthday | None = birthday
+        self.tags: list[Tag] = tags
+        self.address: Address | None = address
+        self.emails: list[Email] = emails
+        self.photo: Photo | None = Photo(photo) if photo else None
 
     def add_birthday(self, date):
         self.birthday = Birthday(date)
@@ -33,6 +43,19 @@ class Record:
             self.address.value = address
         else:
             self.add_address(address)
+
+    def add_photo(self, photo: str):
+        self.photo = Photo(photo)
+
+    def edit_photo(self, photo: str):
+        if self.photo:
+            self.photo = Photo(photo)
+        else:
+            self.add_photo(photo)
+
+    @property
+    def ascii_photo_path(self):
+        return self.photo.value if self.photo else None
 
     def find_email(self, email: str) -> Email | None:
         found_email = next((item for item in self.emails if item.value == email), None)

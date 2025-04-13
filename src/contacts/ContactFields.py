@@ -1,3 +1,4 @@
+import os
 import re
 from datetime import datetime as dt
 
@@ -112,3 +113,34 @@ class Email(Field):
         if isinstance(other, Email):
             return self.value == other.value
         return False
+
+
+class Photo(Field):
+    def __init__(self, path: str):
+        self.value = path
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, path: str):
+        if (
+            path
+            and isinstance(path, str)
+            and path.endswith(".txt")
+            and os.path.isfile(path)
+        ):
+            self._value = path
+        else:
+            self._value = None  # or raise an error
+
+    def __str__(self):
+        return self._value or "[No Photo]"
+
+    @staticmethod
+    def validate_path(path: str) -> bool:
+        """Validate that the path is a .txt file and exists."""
+        return bool(
+            path and isinstance(path, str) and path.endswith(".txt")
+        )  # and os.path.isfile(path))

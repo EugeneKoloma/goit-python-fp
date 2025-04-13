@@ -8,6 +8,7 @@ from contacts.validators import (
     BirthdayValidator,
     EmailValidator,
     NameValidator,
+    PathValidator,
     PhoneValidator,
     TagsValidator,
 )
@@ -77,6 +78,7 @@ field_value_completers = {
     "address": WordCompleter([], ignore_case=True),
     "birthday": WordCompleter([], ignore_case=True),
     "tags": WordCompleter([], ignore_case=True),
+    "photo": WordCompleter([], ignore_case=True),
     # Extend with known values or logic later
 }
 
@@ -116,6 +118,8 @@ def get_new_contact_details(book):
 
     tags = [t.strip() for t in tags_input.split(",")] if tags_input else []
 
+    photo = ask_field("Photo (optional)", validator=PathValidator(), required=False)
+
     return {
         "name": name,
         "phone": phone,
@@ -123,6 +127,7 @@ def get_new_contact_details(book):
         "address": address,
         "birthday": birthday,
         "tags": tags,
+        "photo": photo,
     }
 
 
@@ -145,6 +150,8 @@ def get_existing_contact_details(book):
 
     tags = [t.strip() for t in tags_input.split(",")] if tags_input else []
 
+    photo = ask_field("Photo (optional)", validator=PathValidator(), required=False)
+
     return {
         "name": name,
         "phone": phone,
@@ -152,6 +159,7 @@ def get_existing_contact_details(book):
         "address": address,
         "birthday": birthday,
         "tags": tags,
+        "photo": photo,
     }
 
 
@@ -191,6 +199,8 @@ def get_field_validator(field):
             return BirthdayValidator()
         case "tags":
             return TagsValidator()
+        case "photo":
+            return PathValidator()
         case _:
             return Validator.from_callable(lambda t: True)  # no validation
 
@@ -273,8 +283,8 @@ def prompt_remove_details(book):
             .strip()
             .lower()
         )
-        if confirm == "yes":
-            return "contact", None, name
+        if confirm in {"yes", "y"}:
+            return name, "contact", None
         else:
             print("Cancelled.")
             return None, None, None
