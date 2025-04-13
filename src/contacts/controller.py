@@ -96,12 +96,18 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                         name = value
                         contact_data = {"name": name}
 
-                        # Prompt for phone
-                        phone = prompt_for_field("phone")
-                        if not book_service.validate_field("phone", phone):
-                            output_error("Invalid phone number.")
-                            return
-                        contact_data["phone"] = phone
+                        existing_record = book_service.book.find(name)
+
+                        if existing_record:
+                            if not existing_record.phones:
+                                # Prompt for phone
+                                phone = prompt_for_field("phone")
+                                if not book_service.validate_field("phone", phone):
+                                    output_error("Invalid phone number.")
+                                    return
+                                contact_data["phone"] = phone
+                            else:
+                                contact_data["phone"] = str(existing_record.phones[0])
 
                         book_service.add_contact_from_dict(contact_data)
                         output_info(f"Created new contact '{name}' with phone.")
@@ -118,13 +124,18 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
 
                         contact_data = {"name": name, field: value}
 
-                        # Prompt for phone if not provided
-                        if field != "phone":
-                            phone = prompt_for_field("phone")
-                            if not book_service.validate_field("phone", phone):
-                                output_error("Invalid phone number.")
-                                return
-                            contact_data["phone"] = phone
+                        existing_record = book_service.book.find(name)
+
+                        if existing_record:
+                            if not existing_record.phones:
+                                # Prompt for phone
+                                phone = prompt_for_field("phone")
+                                if not book_service.validate_field("phone", phone):
+                                    output_error("Invalid phone number.")
+                                    return
+                                contact_data["phone"] = phone
+                            else:
+                                contact_data["phone"] = str(existing_record.phones[0])
 
                         book_service.add_contact_from_dict(contact_data)
                         output_info(f"Created new contact '{name}' with {field}.")
@@ -182,9 +193,6 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
             case "change":
                 book_service.change_contacts_phone(args)
 
-            case "delete":
-                print("Delete!")  # Put real delete function here
-
             case "remove":
                 if not args:
                     name, field, value = prompt_remove_details(book)
@@ -229,6 +237,31 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                     output_warning(
                         "Nothing was removed. Check if the value and name are correct."
                     )
+
+            case "sort":
+                field = args[0].lower() if args else None
+                order = args[1].lower() if len(args) > 1 else "asc"
+                reverse = order == "desc"
+                valid_fields = ["name", "phone", "email", "address", "birthday", "tags"]
+
+                if not field or field not in valid_fields:
+                    return output_error(
+                        f"❌ Please provide a valid field to sort by: {', '.join(valid_fields)}"
+                    )
+
+                def get_sort_key(record):
+                    value = getattr(record, field, None)
+                    if isinstance(value, list):
+                        return str(value[0]) if value else ""
+                    return str(value) if value else ""
+
+                sorted_records = sorted(
+                    book.data.values(), key=get_sort_key, reverse=reverse
+                )
+
+                if not sorted_records:
+                    return output_info("📭 No contacts to show.")
+                return book_service.show_sorted_contacts(sorted_records)
 
             case "phone":
                 book_service.show_contacts_phones(args)
