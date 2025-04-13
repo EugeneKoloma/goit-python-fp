@@ -40,7 +40,9 @@ class Birthday(Field):
     def validate_date(date: str) -> bool:
         try:
             dt.strptime(date, Birthday.date_format_pattern)
-            return True
+            return (True) and (
+                dt.strptime(date, Birthday.date_format_pattern) < dt.now()
+            )
         except ValueError:
             return False
 

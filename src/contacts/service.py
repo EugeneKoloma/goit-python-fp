@@ -142,6 +142,11 @@ class PhoneBookService:
             display_contacts_table(self.book.data.values())
 
     @error_handler
+    def show_sorted_contacts(self, sorted: ContactsBook) -> None:
+        self.sorted = sorted
+        display_contacts_table(self.sorted)
+
+    @error_handler
     def show_next_n_days_birthdays(self, args: list):
         try:
             days_to = int(args[0].strip(" ,")) if args else 7
@@ -203,10 +208,6 @@ class PhoneBookService:
             raise FieldNotFound(
                 f"Phone number {new_phone} not exist. You can add it using the 'add' command."
             )
-
-        # Moving validation to separate validators.py level
-        # if self.book.is_phone_owned(new_phone):
-        #     raise PhoneAlreadyOwned(f"This number {new_phone} already owned.")
 
         phone.value = new_phone
         output_info(
