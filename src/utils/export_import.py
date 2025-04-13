@@ -65,6 +65,9 @@ def export_contacts_to_csv(book: ContactsBook, args: list = [".\\data\\contacts.
                 tags = getattr(record, "tags", None)
                 tags = ";".join(tags) if tags else "—"
 
+                photo = getattr(record, "photo", None)
+                photo = f"{photo.value}" if photo else "—"
+
                 whole_data = {
                     "Name": name,
                     "Phones": phones,
@@ -72,6 +75,7 @@ def export_contacts_to_csv(book: ContactsBook, args: list = [".\\data\\contacts.
                     "Emails": emails,
                     "Address": address,
                     "Tags": tags,
+                    "Photo": photo,
                 }
 
                 csv_row = [
