@@ -71,7 +71,7 @@ def output_error(message: str):
 
 def notes_output(notes: dict):        
     for id, note in notes.items():  
-        tags = " ".join([str(tag) for tag in note.tags]) + "\n" if note.tags else ""
+        tags = "#" + " #".join([str(tag) for tag in note.tags]) + "\n" if note.tags else ""
         panel = Panel(
             f"{note.context.value}\n" 
             + f"[bold cyan]{tags}[/bold cyan]"

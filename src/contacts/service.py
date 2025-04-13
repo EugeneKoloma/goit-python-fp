@@ -23,6 +23,10 @@ from utils.search import elastic_search
 from .ContactsBook import ContactsBook
 from .Records import Record
 from .undo import save_undo_state
+from utils.export_import import (
+    export_contacts_to_csv,
+    import_contacts_to_csv
+)
 
 
 class PhoneBookService:
@@ -370,3 +374,16 @@ class PhoneBookService:
                 return True
 
         return False
+
+    
+    def export_contacts_to_csv(self, args: list[str]):
+        if args:
+            export_contacts_to_csv(self.book, args)
+        else:
+            export_contacts_to_csv(self.book)
+
+    def import_contacts_to_csv(self, args: list[str]):
+        if args:
+            import_contacts_to_csv(self.book, args)
+        else:
+            import_contacts_to_csv(self.book)

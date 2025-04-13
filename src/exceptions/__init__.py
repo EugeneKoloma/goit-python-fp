@@ -8,6 +8,7 @@ from .TagNotFound import TagNotFound
 from .WrongDateFormat import WrongDateFormat
 from .WrongEmailValue import WrongEmailValue
 from .WrongPhoneNumber import WrongPhoneNumber
+from .WrongFileName import WrongFileName
 
 __all__ = [
     "EmailAlreadyOwned",
@@ -21,4 +22,5 @@ __all__ = [
     "WrongEmailValue",
     "TagNotFound",
     "NoteNotFoundError",
+    "WrongFileName",
 ]

@@ -6,7 +6,8 @@ from exceptions import (
     FieldNotFound,
     WrongPhoneNumber,
     NoteNotFoundError,
-    InvalidDaysInput
+    InvalidDaysInput,
+    WrongFileName,
 )
 
 
@@ -31,6 +32,8 @@ def error_handler(func):
         except NoteNotFoundError:
             pass
         except InvalidDaysInput as error:
+            pass
+        except WrongFileName as error:
             pass
         except Exception as error:
             print("Unexpected error:", error)

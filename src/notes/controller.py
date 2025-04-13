@@ -96,6 +96,8 @@ def controller(notes: Notes):
                     case _:
                         print(f"{Fore.RED}Unknown field '{field}'.{Fore.RESET}")
 
+            case "export":
+                notes_service.export_notes_to_folder(args)
             case "all":
                 notes_service.show_all_notes()
             case _:
