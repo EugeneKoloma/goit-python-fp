@@ -10,6 +10,7 @@ from output import (
 from .Note import Note
 from .Notes import Notes
 from .NotesFields import Context, Title
+from utils.export_import import export_notes_to_folder
 
 
 class NotesBookService:
@@ -148,7 +149,7 @@ class NotesBookService:
         else:
             raise NoteNotFoundError
 
-    ################################# OTHER NOTES SERVICE #################################
+    ################################# OTHER NOTES SERVICES #################################
 
     @error_handler
     def delete_note_by_id(self, args: list[str]):
@@ -199,6 +200,12 @@ class NotesBookService:
             elif choice == "updated desc":
                 notes_output(updated_result_desc)
                 return updated_result_desc
+
+    def export_notes_to_folder(self, args: list[str]):
+        if args:
+            export_notes_to_folder(self.notes_book, args)
+        else:
+            export_notes_to_folder(self.notes_book)
 
 
 if __name__ == "__main__":

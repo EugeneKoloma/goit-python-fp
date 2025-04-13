@@ -1,4 +1,6 @@
+import re
 import csv
+from pathlib import Path
 
 from output import default_contacts_table_fields
 from decorators import error_handler
@@ -7,14 +9,19 @@ from output import output_error, output_info
 
 from contacts.ContactsBook import ContactsBook
 from contacts.Records import Record
+from notes import Notes
 
 
 @error_handler
-def export_contacts_to_csv(book: ContactsBook, args: list = [".\\data\\contacts.csv"]):
+def export_contacts_to_csv(book: ContactsBook, args: list = [".\\data\\contacts.csv"]):    
     file_name, *fields = args
     file_name = file_name.lower().strip()
     if not file_name.endswith(".csv"):
         raise WrongFileName
+    
+    if not book:
+        output_info(f"Export to '{file_name}' impossible. ContactsBook is empty yet!")
+        return
 
     if not fields:
         fields = default_contacts_table_fields
@@ -24,8 +31,11 @@ def export_contacts_to_csv(book: ContactsBook, args: list = [".\\data\\contacts.
             for field in default_contacts_table_fields
             if field.lower() in fields
         ]
+
+        # removing duplicates, if exist
+        fields = set(fields)
         if "Name" not in fields:
-            fields.insert(0, "Name")
+            fields.add("Name")
 
     try:
         with open(file_name, "w+", newline="", encoding="UTF-8") as file:  
@@ -117,3 +127,33 @@ def import_contacts_to_csv(book: ContactsBook, args: list = [".\\data\\contacts.
         output_error(f"Name of '{file_name}' file contains invalid argument! Please, give me a valid file-name!")
     except Exception:
         output_error(f"An ERROR occurred! Check the format for '{file_name}' data.")
+
+
+@error_handler
+def export_notes_to_folder(notes_book: Notes, args: list = [".\\data\\notes"]):
+    folder_name, *_ = args
+    if not notes_book:
+        output_info(f"Export to '{folder_name}' is impossible. NotesBook is empty yet!")
+        return
+
+    folder_name = Path(folder_name)
+    folder_name.mkdir(parents=True, exist_ok=True)
+
+    try:
+        for id, note in notes_book.items():
+            # Remove all unacceptable characters in the note's title
+            pattern = r"[;,\-:?\*\|\"\/\\\<\> \+\=]"
+            replacement = "_"
+            note_title = re.sub(pattern, replacement, note.title._value)
+            file_name = f"{folder_name}/{id} - {note_title}.txt"
+            
+            with open(file_name, "w+", newline="", encoding="UTF-8") as file:
+                file.write(f"{note.context._value}\n\n")
+                if note.tags:
+                    tags = "#" + " | #".join([str(tag) for tag in note.tags])
+                    file.write(f"Tags: {tags}\n")
+                    file.write(f"     Created at | {note.created_at}\n")
+                    file.write(f"Last updated at | {note.updated_at}\n")
+
+    except OSError:
+        output_error(f"Name of '{file_name}' file contains invalid argument! Please, give me a valid file-name!")
