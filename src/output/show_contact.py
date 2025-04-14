@@ -60,17 +60,13 @@ def show_contact_card(record):
         tags = " ".join(f"{str(tag)}" for tag in record.tags)
         add("Tags", tags)
 
-    # 3. Wrap the contact card in a styled panel
-    term_width = console.size.width
-    max_width = term_width // 2
-
     contact_panel = Panel(
         Align.center(contact_table),
         title=f"📇 Contact {record.name} Details",
         border_style="green",
         box=box.ROUNDED,
         padding=(1, 2),
-        width=max_width,
+        width=66,
     )
 
     console.print(contact_panel)
