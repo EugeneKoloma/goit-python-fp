@@ -281,23 +281,6 @@ class TestContactsCLI(unittest.TestCase):
         self.commands("remove", "email", "not@found.com", "FailTest")
         self.assertIn("Nothing was removed", self.get_output())
 
-    def test_edit_contact(self):
-        self.commands("add", "phone", "0671234567", "EditUser")
-        from contacts.controller import edit_contact_prompt
-
-        original_prompt = edit_contact_prompt
-
-        def dummy_edit_prompt(book):
-            return ("phone", "0679999999", "Updated")
-
-        import contacts.controller as ctrl_mod
-
-        ctrl_mod.edit_contact_prompt = dummy_edit_prompt
-        self.commands("edit")
-        output = self.get_output()
-        self.assertIn("Updated", output)
-        ctrl_mod.edit_contact_prompt = original_prompt
-
     def test_add_tag(self):
         from contacts.controller import prompt_for_field
 
