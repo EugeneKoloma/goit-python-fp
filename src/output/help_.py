@@ -168,6 +168,7 @@ def show_help_panels():
     extra_rows = [
         ("help", "Display help menu", "help"),
         ("help-tree", "Display help command-tree", "help-tree"),
+        ("test-contacts", "Run test", "Result of test"),
         ("exit | close", "Close the program", "exit"),
     ]
 
