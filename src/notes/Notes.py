@@ -40,8 +40,9 @@ class Notes(UserDict):
         note.id = self.__notes_counter
         self.data[str(self.__notes_counter)] = note
 
-    def find_notes_by_id(self, id: str) -> dict:
-        return {id: self.data[id]}
+    def find_notes_by_id(self, id: str) -> dict | None:
+        if id in self.data.keys():
+            return {id: self.data[id]}
 
     def find_notes_by_context(self, query: str) -> dict:
         query = query.lower()

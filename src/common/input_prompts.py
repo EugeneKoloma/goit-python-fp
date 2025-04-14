@@ -13,7 +13,6 @@ from contacts.validators import (
     TagsValidator,
 )
 from output import output_error
-from exceptions import NoteNotFoundError
 
 note_field_value_completers = {
     "title": WordCompleter([], ignore_case=True),
