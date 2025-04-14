@@ -17,10 +17,11 @@ def export_contacts_to_csv(book: ContactsBook, args: list = ["./data/contacts.cs
     file_name, *fields = args
     file_name = file_name.lower().strip()
     folder = file_name.split("/")[:-1]
+
     if not file_name.endswith(".csv"):
         raise WrongFileName
     
-    folder = Path("".join(folder))
+    folder = Path("/".join(folder))
     file_name = Path(file_name)
     folder.mkdir(parents=True, exist_ok=True)
 
