@@ -124,6 +124,16 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                         if not book_service.validate_field("phone", phone):
                             output_error("Invalid phone number.")
                             return
+                        if book_service.book.is_phone_owned(phone):
+                            output_error(
+                                f"Phone number '{phone}' is already associated with another contact."
+                            )
+                            return
+                        if book_service.contact_exists(name):
+                            output_error(
+                                f"Contact with name '{name}' already exists. Use 'edit' to update the contact."
+                            )
+                            return
                         book_service.add_contact_from_dict(
                             {"name": name, "phone": phone}
                         )
@@ -145,6 +155,11 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                                     phone = prompt_for_field("phone").strip()
                                     if not book_service.validate_field("phone", phone):
                                         output_error("Invalid phone number.")
+                                        return
+                                    if book_service.book.is_phone_owned(phone):
+                                        output_error(
+                                            f"Phone number '{phone}' is already associated with another contact."
+                                        )
                                         return
                                     contact_data["phone"] = phone
                                 book_service.add_contact_from_dict(contact_data)

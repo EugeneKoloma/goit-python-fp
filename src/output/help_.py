@@ -78,7 +78,11 @@ def show_help_panels():
             "Show contact's birthday",
             "contacts show-birthday John",
         ),
-        ("contacts birthdays", "Upcoming birthdays list", "contacts birthdays"),
+        (
+            "contacts birthdays [N Next Days]",
+            "Upcoming birthdays list in next N days",
+            "contacts birthdays 10",
+        ),
         ("contacts undo", "Undo last action", "contacts undo"),
         (
             "contacts sort [Field] [asc|desc]",
