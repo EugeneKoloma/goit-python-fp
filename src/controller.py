@@ -1,6 +1,13 @@
+import os
+import random
+import time
+
 from colorama import Fore, init
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import Completer, Completion
+from prompt_toolkit.styles import Style
+from rich.console import Console
+from rich.text import Text
 
 from contacts import cntcts_controller
 from context import data_cxt_mngr
@@ -8,6 +15,8 @@ from notes import notes_controller
 from output import output_warning
 from output.help_ import show_help_ascii_tree, show_help_panels
 from tests.test_contacts import run_all_tests
+
+console = Console()
 
 COMMAND_TREE = {
     "contacts": [
@@ -61,6 +70,15 @@ COMMAND_TREE = {
 global UNDONE
 UNDONE = False
 
+MATRIX_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@#$%^&*()"
+
+# Optional styling (make suggestions gray)
+style = Style.from_dict(
+    {
+        "suggestion": "fg:#4e9a06",
+    }
+)
+
 
 class CommandCompleter(Completer):
     def get_completions(self, document, complete_event):
@@ -80,9 +98,77 @@ class CommandCompleter(Completer):
                     yield Completion(sub, start_position=-len(parts[1]))
 
 
+# --- Intro Animation ---
+def matrix_rain(duration=3, width=80, height=24):
+    columns = [0] * width
+    start_time = time.time()
+
+    # Clear screen once before starting
+    # print("\033[2J\033[H", end="")
+    os.system("cls" if os.name == "nt" else "clear")
+
+    # Print blank lines to reserve space
+    # print("\n" * height)
+
+    while time.time() - start_time < duration:
+        print("\033[1;40m", end="")  # Black background
+        frame = []
+
+        for y in range(height):
+            line = ""
+            for i in range(width):
+                if random.random() < 0.02:
+                    columns[i] = 0
+                if columns[i] < y:
+                    line += " "
+                else:
+                    line += f"\033[92m{random.choice(MATRIX_CHARS)}\033[0m"
+            frame.append(line)
+
+        print("\n".join(frame))
+        columns = [col + 1 for col in columns]
+        time.sleep(0.1)
+
+        # Move cursor back to top of animation block
+        print(f"\033[{height}A", end="")
+
+    # Clear screen once after animation
+    # print("\033[2J\033[H", end="")
+    os.system("cls" if os.name == "nt" else "clear")
+
+
+# --- Typing Effect ---
+def type_out_rich(text: Text, delay=0.03):
+    styled_chars = text.split()
+    for word in styled_chars:
+        for char in word.plain:
+            # Print each character with the original style
+            console.print(
+                Text(char, style=word.style), end="", soft_wrap=False, highlight=False
+            )
+            time.sleep(delay)
+        console.print(" ", end="")  # keep word spacing
+    print()
+
+
 def bootstrap():
     init()
-    print(f"{Fore.BLUE}**** Welcome to the assistant bot! ****{Fore.RESET}")
+    matrix_rain(duration=3)
+
+    type_out_rich(Text("Wake up, Neo...", style="bold green"))
+    time.sleep(1)
+
+    type_out_rich(Text("The Matrix has you.", style="bold green"))
+    time.sleep(1.5)
+
+    type_out_rich(Text("Follow the white rabbit.", style="bold green"))
+    time.sleep(2)
+
+    print()
+    print(f"🔵 {Fore.GREEN}Welcome to the Matrix CLI Mode{Fore.GREEN} 🔵")
+    print()
+
+    # print(f"{Fore.BLUE}**** Welcome to the assistant bot! ****{Fore.RESET}")
     with data_cxt_mngr() as (book, notes):
         contacts_controller = cntcts_controller(book)
         nts_controller = notes_controller(notes)
@@ -92,7 +178,7 @@ def bootstrap():
         while True:
             try:
                 parts = (
-                    prompt("Enter a command: ", completer=completer)
+                    prompt("[neo@matrix]$ ", completer=completer, style=style)
                     .strip()
                     .lower()
                     .split()
