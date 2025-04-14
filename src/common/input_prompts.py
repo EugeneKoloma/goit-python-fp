@@ -29,7 +29,7 @@ def get_new_note_details():
     title = ask_field("Title")
     context = ask_field("Context")
     tags_input = ask_field(
-        "Tags (optional, comma-separated)", validator=TagsValidator(), required=False
+        "Tags (optional, comma-separated, min 2 ch)", validator=TagsValidator(), required=False
     )
 
     tags = [t.strip() for t in tags_input.split(",")] if tags_input else []
