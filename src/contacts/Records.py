@@ -118,7 +118,29 @@ class Record:
             str(self.address) if self.address else "",
             str(self.birthday) if self.birthday else "",
             *[str(tag) for tag in self.tags],
+            str(self.photo) if self.photo else "",
         ]
+
+    def get_field_values_list(self, field: str) -> str | None:
+        """
+        Returns a string representation of the field's current value,
+        or None if the field does not exist or is empty.
+        """
+        match field:
+            case "phone" | "phones":
+                return [str(p) for p in self.phones]
+            case "email" | "emails":
+                return [str(e) for e in self.emails]
+            case "tags":
+                return [str(t) for t in self.tags]
+            case "birthday":
+                return [str(self.birthday)] if self.birthday else []
+            case "address":
+                return [str(self.address)] if self.address else []
+            case "name":
+                return [str(self.name)] if self.name else []
+            case _:
+                return []
 
     def __str__(self):
         birthday = (
@@ -139,6 +161,11 @@ class Record:
             if self.tags
             else ""
         )
+        # photo = (
+        #     f"Photo: {Fore.LIGHTGREEN_EX}{self.photo}{Fore.RESET} "
+        #     if self.photo
+        #     else ""
+        # )
         return (
             f"Contact name: {Fore.CYAN}{self.name._value.capitalize()}{Fore.RESET}. "
             f"Phones: {Fore.YELLOW}{' '.join(p.value for p in self.phones)}{Fore.RESET} "
@@ -155,3 +182,5 @@ class Record:
             self.birthday = None
         if "tags" not in state:
             self.tags = []
+        if "photo" not in state:
+            self.photo = None

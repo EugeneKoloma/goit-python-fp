@@ -18,15 +18,12 @@ from output import (
     output_info,
     output_warning,
 )
+from utils.export_import import export_contacts_to_csv, import_contacts_to_csv
 from utils.search import elastic_search
 
 from .ContactsBook import ContactsBook
 from .Records import Record
 from .undo import save_undo_state
-from utils.export_import import (
-    export_contacts_to_csv,
-    import_contacts_to_csv
-)
 
 
 class PhoneBookService:
@@ -85,51 +82,65 @@ class PhoneBookService:
         match field:
             case "name":
                 record.name._value = new_value
+                return True
             case "phone":
                 if self.book.is_phone_owned(new_value):
                     raise PhoneAlreadyOwned(
-                        f"This number {Fore.YELLOW}{new_value}{Fore.RESET} already owned."
+                        f"This number {Fore.YELLOW}{new_value}{Fore.RESET} is already owned."
                     )
-                if record.phones:
-                    record.add_phone(new_value)
+
+                if old_value:
+                    for i, phone in enumerate(record.phones):
+                        if str(phone) == str(old_value):
+                            record.phones[i] = Phone(new_value)
+                            output_info(
+                                f"Phone {old_value} has been updated to {new_value}."
+                            )
+                            return True  # Explicit success return
+                    raise FieldNotFound(f"Phone {old_value} not found.")
                 else:
                     record.add_phone(new_value)
+                    return True  # Also confirm success here
+
             case "email":
                 if not old_value:
                     record.add_email(new_value)
-                    return
+                    return True
                 old_email = record.find_email(old_value)
                 if old_email:
                     old_email.value = new_value
-                    print(f"Email {old_value} has been updated to {new_value}.")
+                    output_info(f"Email {old_value} has been updated to {new_value}.")
+                    return True
                 else:
                     raise FieldNotFound(f"Email {old_value} not found.")
             case "address":
                 record.add_address(new_value)
+                return True
             case "birthday":
                 record.add_birthday(new_value)
+                return True
 
             case "tags":
                 if not old_value:
                     record.add_tag(new_value)
-                    return
+                    return True
 
                 tag = record.find_tag(old_value)
                 if tag:
                     tag.value = new_value
-                    print(f"Tag {old_value} has been updated to {new_value}.")
+                    output_info(f"Tag {old_value} has been updated to {new_value}.")
+                    return True
                 else:
                     raise FieldNotFound(f"Tag {old_value} not found.")
 
             case "photo":
                 record.add_photo(new_value)
+                return True
 
             case _:
                 raise FieldNotFound(
                     f"Field {Fore.YELLOW}{field}{Fore.RESET} not recognized."
                 )
-
-        # output_info(f"Contact {name}'s field '{field}' has been updated.")
 
     @error_handler
     def show_all_contacts(self, args: list[str] = []) -> None:
@@ -375,7 +386,6 @@ class PhoneBookService:
 
         return False
 
-    
     def export_contacts_to_csv(self, args: list[str]):
         if args:
             export_contacts_to_csv(self.book, args)
