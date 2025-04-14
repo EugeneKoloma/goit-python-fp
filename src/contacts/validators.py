@@ -78,6 +78,9 @@ class PathValidator(Validator):
     def validate(self, document):
         text = document.text.strip()
 
+        if text == "":
+            return
+
         if not text.endswith(".txt"):
             raise ValidationError(
                 message="File must be a .txt file.", cursor_position=len(text)

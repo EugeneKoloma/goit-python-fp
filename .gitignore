@@ -12,4 +12,5 @@ __pycache__/
 
 addressbook.pkl
 contacts_book.pkl
-noetes_book.pkl
+notes_book.pkl
+data/undo_state.pkl
