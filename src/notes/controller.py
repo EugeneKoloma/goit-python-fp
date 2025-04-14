@@ -80,6 +80,7 @@ def controller(notes: Notes):
                     print("Please provide field (by) and query (what) to search.")
                     return
                 field = args[0]
+                query = args[1:]
                 if field not in [
                     "id",
                     "title",
@@ -88,7 +89,7 @@ def controller(notes: Notes):
                     "context",
                 ]:
                     field = "elastic_search"
-                query = args[1:]
+                    query = args
                 match field:
                     case "id":
                         notes_service.find_note_by_id(query)
