@@ -16,12 +16,14 @@ from notes import Notes
 def export_contacts_to_csv(book: ContactsBook, args: list = ["./data/contacts.csv"]):    
     file_name, *fields = args
     file_name = file_name.lower().strip()
+    folder = file_name.split("/")[:-1]
     if not file_name.endswith(".csv"):
         raise WrongFileName
     
+    folder = Path("".join(folder))
     file_name = Path(file_name)
-    absolute_path = file_name.absolute()
-    absolute_path.mkdir(parents=True, exist_ok=True)
+    folder.mkdir(parents=True, exist_ok=True)
+
 
     if not book:
         output_info(f"Export to '{file_name}' impossible. ContactsBook is empty yet!")
