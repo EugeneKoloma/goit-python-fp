@@ -11,6 +11,7 @@ default_contacts_table_fields = [
     "Emails",
     "Address",
     "Tags",
+    "Photo",
 ]
 
 
