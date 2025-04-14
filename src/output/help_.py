@@ -107,13 +107,21 @@ def show_help_panels():
     ]
 
     notes_rows = [
-        ("notes create", "Create note via input", "notes create"),
         (
-            "notes create [Context] [Title] [Tags]",
-            "Create note with arguments",
-            'notes create work "Buy milk" food,home',
+            "notes create\n   Title [Title (opt)]\n   Context [*Context]\n   Tags [Tags (opt)]",
+            "Create note via step by step input",
+            "notes create\n   Some title\n   Some context\n   Some tags",
         ),
-        ("notes edit", "Edit note via prompt", "notes edit"),
+        (
+            "notes create [Context]",
+            "Create note by it's context with tags by '#'",
+            'notes create "Some default note with tags #milk and #way."',
+        ),
+        (
+            "notes edit\n   ID [ID]\n   prompt [Title | Context | Tags]",
+            "Edit note via prompt",
+            "notes edit\n   1\n   title: new title",
+        ),
         (
             "notes edit [ID] title [Text]",
             "Edit title of note",
@@ -140,7 +148,6 @@ def show_help_panels():
             "Add tags to note",
             "notes add tags tag1,tag2 1",
         ),
-        ("notes find", "Show all notes", "notes find"),
         ("notes find [Query]", "Search notes smartly", "notes find shopping"),
         ("notes find id [NoteID]", "Find note by ID", "notes find id 1"),
         ("notes find title [Text]", "Find notes by title", "notes find title Meeting"),
@@ -150,12 +157,12 @@ def show_help_panels():
             "notes find context work",
         ),
         (
-            "notes find tag [tag1,tag2]",
+            "notes find tag [Tags]",
             "Find notes by tags",
             "notes find tag urgent,home",
         ),
         ("notes all", "Show all notes", "notes all"),
-        ("notes export", "Export notes to CSV", "notes export backup.csv"),
+        ("notes export [File-name (def. .\\data\\contacts.csv)]", "Export notes to CSV", "notes export backup.csv"),
     ]
 
     extra_rows = [

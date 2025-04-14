@@ -24,11 +24,9 @@ def controller(notes: Notes):
                     data = get_new_note_details()
                     notes_service.add_note_to_notes_book(data)
                 else:
-                    context = args[0] if len(args) > 0 else None
-                    title = args[1] if len(args) > 1 else None
-                    tags = args[2].split(",") if len(args) > 2 else []
+                    context = " ".join(args) if len(args) > 0 else None
                     notes_service.add_note_to_notes_book(
-                        {"context": context, "title": title, "tags": tags}
+                        {"context": context}
                     )
 
             case "edit":
@@ -82,6 +80,7 @@ def controller(notes: Notes):
                     print("Please provide field (by) and query (what) to search.")
                     return
                 field = args[0]
+                query = args[1:]
                 if field not in [
                     "id",
                     "title",
@@ -90,7 +89,7 @@ def controller(notes: Notes):
                     "context",
                 ]:
                     field = "elastic_search"
-                query = args[1:]
+                    query = args
                 match field:
                     case "id":
                         notes_service.find_note_by_id(query)

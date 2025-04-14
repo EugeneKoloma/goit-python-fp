@@ -10,8 +10,9 @@ from .NotesFields import Context, Date, Title
 class Note:
     def __init__(self, title: str = "Without title", context: str = ""):
         self.title: Title = Title(title)
-        self.context: Context = Context(context)
+        self.context: Context = Context(context)        
         self.tags: list[Tag] = []
+        self.__get_tags_from_context()
         now = dtdt.now()
         self.created_at: Date = Date(now)
         self.updated_at: Date = Date(now)
@@ -23,7 +24,21 @@ class Note:
 
     @id.setter
     def id(self, id: int):
-        self.__id = id
+        self.__id = id        
+
+    def __get_tags_from_context(self) -> list[Tag]:
+        '''
+        Gets tags from note, if signed with '#'
+        '''
+        if self.context:
+            print(self.context._value)
+            for string in self.context._value.split():
+                if string.startswith("#") and len(string) > 3:
+                    print(string)
+                    self.tags.append(Tag(string[1:].strip(",.:;!?'")))
+            # After addin tags from context to the tag-object remove '#' from note
+            self.context._value = self.context._value.replace("#", "")
+        return self.tags
 
     def change_title(self, new_title: str):
         self.title._value = new_title

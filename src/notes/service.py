@@ -30,18 +30,20 @@ class NotesBookService:
     @error_handler
     def add_note_to_notes_book(self, args: dict) -> None:
         # Create a new Note-objext only if context exists
-        if args:
-            title = args.get("title", "Without title")  # -> str
+        if args:            
+            title = args.get("title", None)  # -> str
             context = args.get("context", None)  # -> str
             tags = args.get("tags", [])  # -> list | str
             if isinstance(tags, str):
                 tags = tags.lower().strip(", #").split()
 
-            if context:
-                new_note = Note()
-                new_note.context = Context(context)
-                new_note.title = Title(title)
-                new_note.tags = [Tag(tag) for tag in tags]
+            if context:                
+                new_note = Note(context = context)      
+                if title:
+                    new_note.title = Title(title)
+                if tags:
+                    new_note.tags = [Tag(tag) for tag in tags]
+                
                 self.notes_book.add_note(new_note)
                 output_info(
                     f"Note with <<id{new_note.id}>> and title <<{new_note.title.value}>> has been added."
@@ -106,7 +108,10 @@ class NotesBookService:
 
     @error_handler
     def show_all_notes(self) -> None:
-        notes_output(self.notes_book.data)
+        if self.notes_book:
+            notes_output(self.notes_book.data)
+        else:
+            output_info("Thera no any notes in NotesBook yet!")
 
     ################################# UPDATE NOTES SERVICE #################################
 
