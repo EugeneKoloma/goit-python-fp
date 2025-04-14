@@ -5,7 +5,6 @@ from datetime import datetime as dt
 from colorama import Fore
 
 from common.input_prompts import (
-    edit_contact_prompt,
     get_new_contact_details,
     get_supported_fields,
     is_valid_field,
@@ -13,7 +12,12 @@ from common.input_prompts import (
     prompt_remove_details,
 )
 from context import save_data
-from output import output_error, output_info, output_warning, show_contact_card
+from output import (
+    output_error,
+    output_info,
+    output_warning,
+    show_contact_card,
+)
 
 from .ContactsBook import ContactsBook
 from .service import PhoneBookService
@@ -37,6 +41,47 @@ def parse_args(raw: str) -> list:
     # Flatten re.findall matches into a single string list
     matches = re.findall(r'"([^"]+)"|(\S+)', raw)
     return [group1 if group1 else group2 for group1, group2 in matches]
+
+
+def select_field_value(record, field: str) -> str | None:
+    """
+    Returns a single selected value from a multi-valued field like phones, emails, tags.
+    If only one value exists, it returns it directly.
+    """
+    values = record.get_field_values_list(field)
+
+    # Sanity check and normalization
+    if isinstance(values, str):
+        values = [values]
+    elif not isinstance(values, list):
+        values = [str(values)]
+    else:
+        values = [str(v) for v in values]
+
+    if not values:
+        output_error(f"No values found in field: {field}")
+        return None
+
+    if len(values) == 1:
+        return values[0]
+
+    # Multiple values — prompt selection
+    print(f"Multiple values found in field '{field}':")
+    for idx, val in enumerate(values, start=1):
+        print(f"{idx}. {val}")
+
+    try:
+        index = int(input("Select value number to edit: "))
+        if 1 <= index <= len(values):
+            selected = values[index - 1]
+            print(f"Selected: {selected}")
+            return selected
+        else:
+            output_error("Invalid selection.")
+            return None
+    except ValueError:
+        output_error("Invalid input. Please enter a number.")
+        return None
 
 
 def conntroller(book: ContactsBook):  # consider renaming to `controller`
@@ -213,14 +258,92 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
 
             case "edit":
                 print(f"{Fore.LIGHTBLUE_EX}Editing contact...{Fore.RESET}")
-                field, new_value, name = edit_contact_prompt(book)
-                if name and field and new_value:
-                    if not book_service.validate_field(field, new_value):
-                        output_error(f"Invalid value for {field}: {new_value}")
+
+                if not args:
+                    # Full interactive
+                    name = prompt_for_field("name")
+                    record = book.find(name)
+                    if not record:
+                        output_error(f"No contact found with name: {name}")
                         return
 
-                    book_service.edit_contact_field(name, field, new_value)
+                    results = book_service.find_contacts(name)
+                    from output.rich_table import display_contacts_table
+
+                    display_contacts_table(results)
+
+                    # output_info(f"Editing contact: {record}")
+
+                    field = prompt_for_field("field")
+                    if not is_valid_field(field):
+                        output_error(f"Unknown field: {field}")
+                        return
+
+                    old_value = select_field_value(record, field)
+                    if old_value is None:
+                        return
+
+                    new_value = prompt_for_field(field)
+
+                elif len(args) == 1:
+                    # Semi-interactive
+                    field = args[0]
+                    if not is_valid_field(field):
+                        output_error(f"Unknown field: {field}")
+                        return
+
+                    name = prompt_for_field("name")
+                    record = book.find(name)
+                    if not record:
+                        output_error(f"No contact found with name: {name}")
+                        return
+
+                    # print(f"Getting old value for {field} in contact {name} 1 arg: {args}")
+                    old_value = select_field_value(record, field)
+                    # print(f"Old value = {old_value}")
+                    if old_value is None:
+                        return
+
+                    new_value = prompt_for_field(field)
+
+                elif len(args) == 2:
+                    # Direct
+                    field, name = args
+                    if not is_valid_field(field):
+                        output_error(f"Unknown field: {field}")
+                        return
+
+                    record = book.find(name)
+                    if not record:
+                        output_error(f"No contact found with name: {name}")
+                        return
+
+                    # print(f"Getting old value for {field} in contact {name} 2 args: {args}")
+                    old_value = select_field_value(record, field)
+                    # print(f"Old value = {old_value}")
+                    if old_value is None:
+                        return
+
+                    new_value = prompt_for_field(field)
+
+                else:
+                    output_warning(
+                        "Invalid arguments. Usage:\n edit\n edit [field]\n edit [field] [name]"
+                    )
+                    return
+
+                print(f"Trying to update {field} for {name}: {old_value} → {new_value}")
+                if not book_service.validate_field(field, new_value):
+                    output_error(f"Invalid value for {field}: {new_value}")
+                    return
+
+                success = book_service.edit_contact_field(
+                    name, field, new_value, old_value=old_value
+                )
+                if success:
                     output_info(f"{field.capitalize()} updated for {name}")
+                else:
+                    output_error(f"Failed to update {field} for {name}")
 
             case "remove":
                 if not args:
@@ -279,6 +402,56 @@ def conntroller(book: ContactsBook):  # consider renaming to `controller`
                         output_info(f"Contact '{name}' has been removed.")
                     else:
                         output_error(f"Contact '{name}' not found.")
+
+                elif len(args) == 2:
+                    field, name = args
+
+                    if field == "contact":
+                        names = book_service.find_contacts(query=name, mode="fuzzy")
+                        if not names:
+                            output_error(f"No contacts found matching: {name}")
+                            return
+
+                        if len(names) == 1:
+                            actual_name = str(names[0].name)
+                            success = book_service.remove_contact(actual_name)
+                            name = actual_name
+                        else:
+                            output_info(f"Found multiple contacts matching '{name}':")
+                            for idx, match in enumerate(names, start=1):
+                                print(f"{idx}. {match}")
+                            try:
+                                choice = int(
+                                    input("Enter the number of the contact to remove: ")
+                                )
+                                if 1 <= choice <= len(names):
+                                    selected_name = str(names[choice - 1].name)
+                                    success = book_service.remove_contact(selected_name)
+                                    name = selected_name
+                                else:
+                                    output_error("Invalid selection.")
+                                    return
+                            except ValueError:
+                                output_error("Invalid input. Please enter a number.")
+                                return
+
+                        if success:
+                            output_info(f"Contact '{name}' has been removed.")
+                        else:
+                            output_error(f"Contact '{name}' not found.")
+
+                    else:
+                        # Field + name provided, but missing value → prompt
+                        value = prompt_for_field(field)
+                        success = book_service.remove_contact_field(name, field, value)
+                        if success:
+                            output_info(
+                                f"{field.capitalize()} '{value}' removed from {name.capitalize()}."
+                            )
+                        else:
+                            output_warning(
+                                "Nothing was removed. Check the field, value, and name."
+                            )
 
                 elif len(args) == 3:
                     field, value, name = args
