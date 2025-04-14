@@ -13,12 +13,18 @@ from notes import Notes
 
 
 @error_handler
-def export_contacts_to_csv(book: ContactsBook, args: list = [".\\data\\contacts.csv"]):    
+def export_contacts_to_csv(book: ContactsBook, args: list = ["./data/contacts.csv"]):    
     file_name, *fields = args
     file_name = file_name.lower().strip()
+    folder = file_name.split("/")[:-1]
     if not file_name.endswith(".csv"):
         raise WrongFileName
     
+    folder = Path("".join(folder))
+    file_name = Path(file_name)
+    folder.mkdir(parents=True, exist_ok=True)
+
+
     if not book:
         output_info(f"Export to '{file_name}' impossible. ContactsBook is empty yet!")
         return
@@ -92,11 +98,13 @@ def export_contacts_to_csv(book: ContactsBook, args: list = [".\\data\\contacts.
 
 
 @error_handler
-def import_contacts_to_csv(book: ContactsBook, args: list = [".\\data\\contacts.csv"]):    
+def import_contacts_from_csv(book: ContactsBook, args: list = ["./data/contacts.csv"]):    
     file_name, *_ = args
     file_name = file_name.lower().strip()
     if not file_name.endswith(".csv"):
         raise WrongFileName
+    
+    file_name = Path(file_name)
 
     try:
         with open(file_name, "r", newline="", encoding="UTF-8") as file: 
@@ -134,7 +142,7 @@ def import_contacts_to_csv(book: ContactsBook, args: list = [".\\data\\contacts.
 
 
 @error_handler
-def export_notes_to_folder(notes_book: Notes, args: list = [".\\data\\notes"]):
+def export_notes_to_folder(notes_book: Notes, args: list = ["./data/notes"]):
     folder_name, *_ = args
     if not notes_book:
         output_info(f"Export to '{folder_name}' is impossible. NotesBook is empty yet!")

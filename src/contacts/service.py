@@ -18,7 +18,7 @@ from output import (
     output_info,
     output_warning,
 )
-from utils.export_import import export_contacts_to_csv, import_contacts_to_csv
+from utils.export_import import export_contacts_to_csv, import_contacts_from_csv
 from utils.search import elastic_search
 
 from .ContactsBook import ContactsBook
@@ -394,6 +394,6 @@ class PhoneBookService:
 
     def import_contacts_to_csv(self, args: list[str]):
         if args:
-            import_contacts_to_csv(self.book, args)
+            import_contacts_from_csv(self.book, args)
         else:
-            import_contacts_to_csv(self.book)
+            import_contacts_from_csv(self.book)
