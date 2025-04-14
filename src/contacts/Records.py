@@ -17,19 +17,19 @@ class Record:
     def __init__(
         self,
         name: Name,
-        phones=[],
+        phones: list[Phone] = None,
         birthday=None,
-        tags=[],
+        tags: list[Tag] = None,
         address=None,
-        emails=[],
+        emails: list[Email] = None,
         photo=None,
     ):
         self.name = Name(name)
-        self.phones: list[Phone] = phones
+        self.phones: list[Phone] = phones if phones is not None else []
         self.birthday: Birthday | None = birthday
-        self.tags: list[Tag] = tags
+        self.tags: list[Tag] = tags if tags is not None else []
         self.address: Address | None = address
-        self.emails: list[Email] = emails
+        self.emails: list[Email] = emails if emails is not None else []
         self.photo: Photo | None = Photo(photo) if photo else None
 
     def add_birthday(self, date):
@@ -121,11 +121,12 @@ class Record:
             str(self.photo) if self.photo else "",
         ]
 
-    def get_field_values_list(self, field: str) -> str | None:
+    def get_field_values_list(self, field: str) -> list[str]:
         """
         Returns a string representation of the field's current value,
         or None if the field does not exist or is empty.
         """
+
         match field:
             case "phone" | "phones":
                 return [str(p) for p in self.phones]

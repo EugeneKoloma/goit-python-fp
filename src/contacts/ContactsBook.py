@@ -1,4 +1,5 @@
 from collections import UserDict
+from copy import deepcopy
 from datetime import datetime as dtdt
 from datetime import timedelta as td
 from typing import Dict
@@ -17,13 +18,18 @@ class ContactsBook(UserDict):
         self.data: Dict[str, Record] = {}
 
     def add_record(self, record: Record):
-        self.data[record.name._value] = record
+        # self.data[record.name._value] = record
 
-    # def find(self, name: str) -> Record | None:
-    #     for record in self.data.values():
-    #         if str(record.name).lower() == name.lower():
-    #             return record
-    #     return None
+        from rich import print  # optional, for pretty output
+
+        print(f"[DEBUG] Saving contact: [bold green]{record.name}[/bold green]")
+        print(f"[DEBUG] Phones: {[str(p) for p in record.phones]}")
+        print(f"[DEBUG] Emails: {[str(e) for e in record.emails]}")
+        print(f"[DEBUG] Tags: {[str(t) for t in record.tags]}")
+
+        # Защита: копия объекта, чтобы избежать общих ссылок
+        key = str(record.name._value).lower()
+        self.data[key] = deepcopy(record)
 
     def find(self, name: str) -> Record | None:
         normalized = " ".join(name.lower().split())  # strips and collapses spaces

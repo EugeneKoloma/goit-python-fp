@@ -15,6 +15,7 @@ from output import (
     default_contacts_table_fields,
     display_birthdays_table,
     display_contacts_table,
+    output_error,
     output_info,
     output_warning,
 )
@@ -51,6 +52,16 @@ class PhoneBookService:
         birthday = data.get("birthday")
         tags = data.get("tags")
 
+        # Check if contact is already existing
+        existing = self.book.find(name)
+        if existing:
+            output_error(
+                f"Contact with name '{name}' already exists. Use 'edit' to update it."
+            )
+            return
+
+        print(f"[DEBUG] Creating new record for: {name}")
+
         new_record = Record(name)
         new_record.add_phone(phone)
 
@@ -64,7 +75,9 @@ class PhoneBookService:
             for tag in tags:
                 new_record.add_tag(tag)
 
-        self.book.add_record(new_record)
+        self.book.add_record(
+            new_record
+        )  #!!! HERE - in should pass new record to add_record() but somehow previous name is thereas well
         # output_info(f"Contact {name} has been added successfully.")
 
     @error_handler
