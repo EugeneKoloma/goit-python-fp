@@ -13,6 +13,7 @@ from contacts.validators import (
     TagsValidator,
 )
 from output import output_error
+from exceptions import NoteNotFoundError
 
 note_field_value_completers = {
     "title": WordCompleter([], ignore_case=True),
@@ -50,7 +51,9 @@ def edit_note_prompt(notes: UserDict):
     field_completer = WordCompleter(field_options, ignore_case=True)
     field = prompt("Which field do you want to edit? ", completer=field_completer)
 
-    record = notes.data[id]
+    
+    record = notes.data[id] if id in notes.data.keys() else None
+
     if not record:
         print(f"Note with '{id}' not found.")
         return None, None, None
