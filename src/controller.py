@@ -191,9 +191,11 @@ def bootstrap():
 
                 match command:
                     case "exit" | "close":
+                        print()
                         print(
-                            f"{Fore.BLUE}************** Goodbye! **************{Fore.RESET}"
+                            f"🔴 {Fore.GREEN}Welcome to the Real World{Fore.RESET} 🔴"
                         )
+                        print()
                         return
                     case "contacts":
                         if args:
